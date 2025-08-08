@@ -1,10 +1,11 @@
--- GUI Pengatur Speed & Infinite Jump + Input Speed + Save Data (ScAri.json)
+-- GUI Pengatur Speed & Infinite Jump + Input Speed + Save Data (ScAri.json) + Aurora UI
 -- Max Speed = 1000, Default = 16
 -- Kompatibel Delta Executor
 
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
 local HttpService = game:GetService("HttpService")
+local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
@@ -16,6 +17,7 @@ local customSpeed = defaultSpeed
 local speedOn = false
 local infJumpOn = false
 local saveFile = "ScAri.json"
+local minimized = false
 
 -- Fungsi Simpan & Load Data
 local function saveData()
@@ -36,7 +38,6 @@ local function loadData()
     end
 end
 
--- Load data saat start
 pcall(loadData)
 
 -- GUI Setup
@@ -55,16 +56,25 @@ local UICorner = Instance.new("UICorner")
 UICorner.CornerRadius = UDim.new(0, 8)
 UICorner.Parent = Frame
 
+-- Animasi Aurora / Rainbow
+spawn(function()
+    local hue = 0
+    while RunService.RenderStepped:Wait() do
+        hue = (hue + 0.005) % 1
+        local color = Color3.fromHSV(hue, 1, 1)
+        Frame.BackgroundColor3 = color
+    end
+end)
+
 -- Tombol Minimize
 local minimizeBtn = Instance.new("TextButton")
 minimizeBtn.Size = UDim2.new(0, 25, 0, 25)
 minimizeBtn.Position = UDim2.new(1, -30, 0, 5)
-minimizeBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+minimizeBtn.BackgroundTransparency = 1
 minimizeBtn.Text = "-"
 minimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 minimizeBtn.Parent = Frame
 
-local minimized = false
 minimizeBtn.MouseButton1Click:Connect(function()
     minimized = not minimized
     for _, child in pairs(Frame:GetChildren()) do
@@ -73,6 +83,11 @@ minimizeBtn.MouseButton1Click:Connect(function()
                 child.Visible = not minimized
             end
         end
+    end
+    if minimized then
+        Frame.Size = UDim2.new(0, 60, 0, 30)
+    else
+        Frame.Size = UDim2.new(0, 200, 0, 200)
     end
 end)
 
