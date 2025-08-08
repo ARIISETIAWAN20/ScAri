@@ -1,67 +1,124 @@
--- GUI Pengatur Speed & Infinite Jump + Input Speed + Save Data (ScAri.json) + Aurora UI
--- Max Speed = 1000, Default = 16
--- Kompatibel Delta Executor
+-- Versi lengkap GUI Speed & Infinite Jump dengan efek aurora + tombol minimize yang tetap terlihat
 
 local Players = game:GetService("Players")
-local UIS = game:GetService("UserInputService")
-local HttpService = game:GetService("HttpService")
-local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
+local UIS = game:GetService("UserInputService")
+local HttpService = game:GetService("HttpService")
 
--- Variabel kontrol
-local maxSpeed = 1000
-local defaultSpeed = 16
-local customSpeed = defaultSpeed
+local fileName = "ScAri.json"
+local speed = 16
 local speedOn = false
 local infJumpOn = false
-local saveFile = "ScAri.json"
-local minimized = false
 
--- Fungsi Simpan & Load Data
 local function saveData()
-    local data = {
-        customSpeed = customSpeed,
-        speedOn = speedOn,
-        infJumpOn = infJumpOn
-    }
-    writefile(saveFile, HttpService:JSONEncode(data))
+    writefile(fileName, HttpService:JSONEncode({speed = speed, speedOn = speedOn, infJumpOn = infJumpOn}))
 end
 
 local function loadData()
-    if isfile(saveFile) then
-        local data = HttpService:JSONDecode(readfile(saveFile))
-        customSpeed = data.customSpeed or defaultSpeed
+    if isfile(fileName) then
+        local data = HttpService:JSONDecode(readfile(fileName))
+        speed = data.speed or 16
         speedOn = data.speedOn or false
         infJumpOn = data.infJumpOn or false
     end
 end
 
-pcall(loadData)
+loadData()
 
--- GUI Setup
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Parent = player:WaitForChild("PlayerGui")
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+local mainFrame = Instance.new("Frame", ScreenGui)
+mainFrame.Size = UDim2.new(0, 200, 0, 150)
+mainFrame.Position = UDim2.new(0.5, -100, 0.5, -75)
+mainFrame.Active = true
+mainFrame.Draggable = true
 
-local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 200, 0, 200)
-Frame.Position = UDim2.new(0.05, 0, 0.3, 0)
-Frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-Frame.Active = true
-Frame.Draggable = true
-Frame.Parent = ScreenGui
+local minimizeButton = Instance.new("TextButton", mainFrame)
+minimizeButton.Size = UDim2.new(0, 25, 0, 25)
+minimizeButton.Position = UDim2.new(1, -30, 0, 5)
+minimizeButton.Text = "-"
 
-local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 8)
-UICorner.Parent = Frame
+local speedBox = Instance.new("TextBox", mainFrame)
+speedBox.Size = UDim2.new(1, -20, 0, 30)
+speedBox.Position = UDim2.new(0, 10, 0, 40)
+speedBox.PlaceholderText = "Speed"
+speedBox.Text = tostring(speed)
 
--- Animasi Aurora / Rainbow
+local speedToggle = Instance.new("TextButton", mainFrame)
+speedToggle.Size = UDim2.new(1, -20, 0, 30)
+speedToggle.Position = UDim2.new(0, 10, 0, 80)
+speedToggle.Text = "Speed: OFF"
+
+local jumpToggle = Instance.new("TextButton", mainFrame)
+jumpToggle.Size = UDim2.new(1, -20, 0, 30)
+jumpToggle.Position = UDim2.new(0, 10, 0, 120)
+jumpToggle.Text = "Inf Jump: OFF"
+
 spawn(function()
-    local hue = 0
-    while RunService.RenderStepped:Wait() do
-        hue = (hue + 0.005) % 1
-        local color = Color3.fromHSV(hue, 1, 1)
+    while wait() do
+        local t = tick() * 0.5
+        local r = math.sin(t) * 127 + 128
+        local g = math.sin(t + 2) * 127 + 128
+        local b = math.sin(t + 4) * 127 + 128
+        mainFrame.BackgroundColor3 = Color3.fromRGB(r, g, b)
+        minimizeButton.BackgroundColor3 = Color3.fromRGB(r, g, b)
+    end
+end)
+
+local minimized = false
+minimizeButton.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    for _, v in pairs(mainFrame:GetChildren()) do
+        if v ~= minimizeButton then
+            v.Visible = not minimized
+        end
+    end
+end)
+
+speedBox.FocusLost:Connect(function(enter)
+    if enter then
+        local val = tonumber(speedBox.Text)
+        if val and val >= 0 and val <= 1000000 then
+            speed = val
+            saveData()
+            if speedOn then humanoid.WalkSpeed = speed end
+        else
+            speedBox.Text = tostring(speed)
+        end
+    end
+end)
+
+speedToggle.MouseButton1Click:Connect(function()
+    speedOn = not speedOn
+    speedToggle.Text = "Speed: " .. (speedOn and "ON" or "OFF")
+    humanoid.WalkSpeed = speedOn and speed or 16
+    saveData()
+end)
+
+jumpToggle.MouseButton1Click:Connect(function()
+    infJumpOn = not infJumpOn
+    jumpToggle.Text = "Inf Jump: " .. (infJumpOn and "ON" or "OFF")
+    saveData()
+end)
+
+UIS.JumpRequest:Connect(function()
+    if infJumpOn then
+        humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+    end
+end)
+
+player.CharacterAdded:Connect(function(char)
+    character = char
+    humanoid = char:WaitForChild("Humanoid")
+    if speedOn then humanoid.WalkSpeed = speed end
+end)
+
+speedBox.Text = tostring(speed)
+speedToggle.Text = "Speed: " .. (speedOn and "ON" or "OFF")
+jumpToggle.Text = "Inf Jump: " .. (infJumpOn and "ON" or "OFF")
+if speedOn then humanoid.WalkSpeed = speed end
+local color = Color3.fromHSV(hue, 1, 1)
         Frame.BackgroundColor3 = color
     end
 end)
