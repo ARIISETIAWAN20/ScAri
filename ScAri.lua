@@ -51,10 +51,10 @@ ScreenGui.Parent = playerGui
 ScreenGui.ResetOnSpawn = false
 ScreenGui.IgnoreGuiInset = true
 
--- Main Frame (diperkecil 10%)
+-- Main Frame (diperbesar 30% dari versi sebelumnya)
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 225, 0, 285) -- Adjusted height since we removed the textbox
-MainFrame.Position = UDim2.new(0.5, -112, 0.5, -142)
+MainFrame.Size = UDim2.new(0, 292, 0, 370) -- Diperbesar 30% dari 225x285
+MainFrame.Position = UDim2.new(0.5, -146, 0.5, -185)
 MainFrame.BackgroundColor3 = colorBlackGlossy
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true -- penting untuk menerima input drag
@@ -65,10 +65,10 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 local function createFireEffect(parent)
     local fireFrames = {}
     local count = 8
-    local radius = 115
+    local radius = 150 -- Diperbesar sesuai dengan frame
     for i = 1, count do
         local fire = Instance.new("Frame")
-        fire.Size = UDim2.new(0, 20, 0, 20)
+        fire.Size = UDim2.new(0, 26, 0, 26) -- Diperbesar
         fire.AnchorPoint = Vector2.new(0.5, 0.5)
         fire.BackgroundColor3 = colorRedFire
         fire.Position = UDim2.new(0.5 + math.cos(i/count*2*math.pi)*radius/MainFrame.Size.X.Offset/2, 0,
@@ -99,10 +99,10 @@ end
 
 createFireEffect(MainFrame)
 
--- Title Bar
+-- Title Bar (diperbesar 30%)
 local TitleBar = Instance.new("TextLabel")
-TitleBar.Size = UDim2.new(1, -60, 0, 30)
-TitleBar.Position = UDim2.new(0, 10, 0, 5)
+TitleBar.Size = UDim2.new(1, -78, 0, 39) -- Diperbesar 30%
+TitleBar.Position = UDim2.new(0, 13, 0, 6) -- Diperbesar 30%
 TitleBar.BackgroundTransparency = 1
 TitleBar.Text = "ARI HUB"
 TitleBar.TextColor3 = colorRedFire
@@ -111,7 +111,7 @@ TitleBar.Font = Enum.Font.GothamBlack
 TitleBar.Parent = MainFrame
 TitleBar.ZIndex = 10
 
--- Fire overlay kecil di belakang TitleBar
+-- Fire overlay kecil di belakang TitleBar (diperbesar 30%)
 local FireOverlay = Instance.new("Frame")
 FireOverlay.Size = TitleBar.Size
 FireOverlay.Position = TitleBar.Position
@@ -130,10 +130,10 @@ spawn(function()
     end
 end)
 
--- Tombol helper
+-- Tombol helper (diperbesar 30%)
 local function createButton(text, position)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -20, 0, 40)
+    btn.Size = UDim2.new(1, -26, 0, 52) -- Diperbesar 30%
     btn.Position = position
     btn.BackgroundColor3 = colorBlackGlossyLight
     btn.TextColor3 = colorWhite
@@ -145,10 +145,10 @@ local function createButton(text, position)
     return btn
 end
 
-local SpeedBtn = createButton("Speed: OFF", UDim2.new(0, 10, 0, 40))
+local SpeedBtn = createButton("Speed: OFF", UDim2.new(0, 13, 0, 52)) -- Diperbesar 30%
 local SpeedBox = Instance.new("TextBox")
-SpeedBox.Size = UDim2.new(1, -20, 0, 30)
-SpeedBox.Position = UDim2.new(0, 10, 0, 85)
+SpeedBox.Size = UDim2.new(1, -26, 0, 39) -- Diperbesar 30%
+SpeedBox.Position = UDim2.new(0, 13, 0, 110) -- Diperbesar 30%
 SpeedBox.BackgroundColor3 = colorBlackGlossyLight
 SpeedBox.TextColor3 = colorWhite
 SpeedBox.Text = tostring(settings.speed)
@@ -157,10 +157,10 @@ SpeedBox.Font = Enum.Font.GothamBold
 SpeedBox.Parent = MainFrame
 Instance.new("UICorner", SpeedBox).CornerRadius = UDim.new(0, 8)
 
-local JumpBtn = createButton("Inf Jump: OFF", UDim2.new(0, 10, 0, 120)) -- Moved up since we removed the textbox
-local AntiClipBtn = createButton("Anti Clip: OFF", UDim2.new(0, 10, 0, 165)) -- Adjusted positions
-local ESPBtn = createButton("ESP: OFF", UDim2.new(0, 10, 0, 210)) -- Adjusted positions
-local BlockBtn = createButton("Block Bawah: OFF", UDim2.new(0, 10, 0, 255)) -- Adjusted positions
+local JumpBtn = createButton("Inf Jump: OFF", UDim2.new(0, 13, 0, 156)) -- Diperbesar 30%
+local AntiClipBtn = createButton("Anti Clip: OFF", UDim2.new(0, 13, 0, 214)) -- Diperbesar 30%
+local ESPBtn = createButton("ESP: OFF", UDim2.new(0, 13, 0, 273)) -- Diperbesar 30%
+local BlockBtn = createButton("Block Bawah: OFF", UDim2.new(0, 13, 0, 331)) -- Diperbesar 30%
 
 -- Variables
 local speedEnabled = settings.speedEnabled or false
@@ -405,10 +405,10 @@ player.Idled:Connect(function()
     VirtualUser:ClickButton2(Vector2.new())
 end)
 
--- Minimize and Close buttons
+-- Minimize and Close buttons (diperbesar 30%)
 local MinBtn = Instance.new("TextButton")
-MinBtn.Size = UDim2.new(0, 30, 0, 30)
-MinBtn.Position = UDim2.new(1, -60, 0, 0)
+MinBtn.Size = UDim2.new(0, 39, 0, 39) -- Diperbesar 30%
+MinBtn.Position = UDim2.new(1, -78, 0, 0) -- Diperbesar 30%
 MinBtn.Text = settings.minimized and "+" or "-"
 MinBtn.TextScaled = true
 MinBtn.Font = Enum.Font.GothamBold
@@ -419,8 +419,8 @@ Instance.new("UICorner", MinBtn).CornerRadius = UDim.new(0, 8)
 MinBtn.ZIndex = 20
 
 local CloseBtn = Instance.new("TextButton")
-CloseBtn.Size = UDim2.new(0, 30, 0, 30)
-CloseBtn.Position = UDim2.new(1, -30, 0, 0)
+CloseBtn.Size = UDim2.new(0, 39, 0, 39) -- Diperbesar 30%
+CloseBtn.Position = UDim2.new(1, -39, 0, 0) -- Diperbesar 30%
 CloseBtn.Text = "X"
 CloseBtn.TextScaled = true
 CloseBtn.Font = Enum.Font.GothamBold
@@ -435,11 +435,11 @@ local elementsToToggle = {SpeedBtn, SpeedBox, JumpBtn, AntiClipBtn, ESPBtn, Bloc
 -- Restore minimized state
 if settings.minimized then
     for _, v in ipairs(elementsToToggle) do v.Visible = false end
-    MainFrame.Size = UDim2.new(0, 225, 0, 40)
+    MainFrame.Size = UDim2.new(0, 292, 0, 52) -- Diperbesar 30%
     MinBtn.Text = "+"
 else
     for _, v in ipairs(elementsToToggle) do v.Visible = true end
-    MainFrame.Size = UDim2.new(0, 225, 0, 285)
+    MainFrame.Size = UDim2.new(0, 292, 0, 370) -- Diperbesar 30%
     MinBtn.Text = "-"
 end
 
@@ -449,11 +449,11 @@ MinBtn.MouseButton1Click:Connect(function()
 
     if settings.minimized then
         for _, v in ipairs(elementsToToggle) do v.Visible = false end
-        MainFrame.Size = UDim2.new(0, 225, 0, 40)
+        MainFrame.Size = UDim2.new(0, 292, 0, 52) -- Diperbesar 30%
         MinBtn.Text = "+"
     else
         for _, v in ipairs(elementsToToggle) do v.Visible = true end
-        MainFrame.Size = UDim2.new(0, 225, 0, 285)
+        MainFrame.Size = UDim2.new(0, 292, 0, 370) -- Diperbesar 30%
         MinBtn.Text = "-"
     end
 end)
