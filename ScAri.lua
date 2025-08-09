@@ -51,24 +51,24 @@ ScreenGui.Parent = playerGui
 ScreenGui.ResetOnSpawn = false
 ScreenGui.IgnoreGuiInset = true
 
--- Main Frame (diperbesar 30% dari versi sebelumnya)
+-- Main Frame (original size)
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 292, 0, 370) -- Diperbesar 30% dari 225x285
-MainFrame.Position = UDim2.new(0.5, -146, 0.5, -185)
+MainFrame.Size = UDim2.new(0, 225, 0, 285)
+MainFrame.Position = UDim2.new(0.5, -112, 0.5, -142)
 MainFrame.BackgroundColor3 = colorBlackGlossy
 MainFrame.BorderSizePixel = 0
-MainFrame.Active = true -- penting untuk menerima input drag
+MainFrame.Active = true
 MainFrame.Parent = ScreenGui
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
--- Fungsi buat efek api merah animasi mengelilingi MainFrame
+-- Fire effect around MainFrame
 local function createFireEffect(parent)
     local fireFrames = {}
     local count = 8
-    local radius = 150 -- Diperbesar sesuai dengan frame
+    local radius = 115
     for i = 1, count do
         local fire = Instance.new("Frame")
-        fire.Size = UDim2.new(0, 26, 0, 26) -- Diperbesar
+        fire.Size = UDim2.new(0, 20, 0, 20)
         fire.AnchorPoint = Vector2.new(0.5, 0.5)
         fire.BackgroundColor3 = colorRedFire
         fire.Position = UDim2.new(0.5 + math.cos(i/count*2*math.pi)*radius/MainFrame.Size.X.Offset/2, 0,
@@ -79,7 +79,7 @@ local function createFireEffect(parent)
         Instance.new("UICorner", fire).CornerRadius = UDim.new(0, 10)
         table.insert(fireFrames, fire)
     end
-    -- Animasi flicker dan gerakan kecil
+    
     spawn(function()
         while parent.Parent do
             for i, fire in ipairs(fireFrames) do
@@ -99,19 +99,21 @@ end
 
 createFireEffect(MainFrame)
 
--- Title Bar (diperbesar 30%)
+-- Title Bar
 local TitleBar = Instance.new("TextLabel")
-TitleBar.Size = UDim2.new(1, -78, 0, 39) -- Diperbesar 30%
-TitleBar.Position = UDim2.new(0, 13, 0, 6) -- Diperbesar 30%
+TitleBar.Size = UDim2.new(1, -60, 0, 30)
+TitleBar.Position = UDim2.new(0, 10, 0, 5)
 TitleBar.BackgroundTransparency = 1
 TitleBar.Text = "ARI HUB"
 TitleBar.TextColor3 = colorRedFire
 TitleBar.TextScaled = true
 TitleBar.Font = Enum.Font.GothamBlack
+TitleBar.TextStrokeTransparency = 0
+TitleBar.TextStrokeColor3 = Color3.new(0, 0, 0)
 TitleBar.Parent = MainFrame
 TitleBar.ZIndex = 10
 
--- Fire overlay kecil di belakang TitleBar (diperbesar 30%)
+-- Fire overlay behind TitleBar
 local FireOverlay = Instance.new("Frame")
 FireOverlay.Size = TitleBar.Size
 FireOverlay.Position = TitleBar.Position
@@ -130,37 +132,43 @@ spawn(function()
     end
 end)
 
--- Tombol helper (diperbesar 30%)
+-- Button creator function
 local function createButton(text, position)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -26, 0, 52) -- Diperbesar 30%
+    btn.Size = UDim2.new(1, -20, 0, 35)
     btn.Position = position
     btn.BackgroundColor3 = colorBlackGlossyLight
     btn.TextColor3 = colorWhite
     btn.Text = text
     btn.TextScaled = true
     btn.Font = Enum.Font.GothamBold
+    btn.TextStrokeTransparency = 0
+    btn.TextStrokeColor3 = Color3.new(0, 0, 0)
     btn.Parent = MainFrame
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
     return btn
 end
 
-local SpeedBtn = createButton("Speed: OFF", UDim2.new(0, 13, 0, 52)) -- Diperbesar 30%
+-- Speed Section
+local SpeedBtn = createButton("Speed: OFF", UDim2.new(0, 10, 0, 40))
 local SpeedBox = Instance.new("TextBox")
-SpeedBox.Size = UDim2.new(1, -26, 0, 39) -- Diperbesar 30%
-SpeedBox.Position = UDim2.new(0, 13, 0, 110) -- Diperbesar 30%
+SpeedBox.Size = UDim2.new(1, -20, 0, 25)
+SpeedBox.Position = UDim2.new(0, 10, 0, 80)
 SpeedBox.BackgroundColor3 = colorBlackGlossyLight
 SpeedBox.TextColor3 = colorWhite
 SpeedBox.Text = tostring(settings.speed)
 SpeedBox.TextScaled = true
 SpeedBox.Font = Enum.Font.GothamBold
+SpeedBox.TextStrokeTransparency = 0
+SpeedBox.TextStrokeColor3 = Color3.new(0, 0, 0)
 SpeedBox.Parent = MainFrame
-Instance.new("UICorner", SpeedBox).CornerRadius = UDim.new(0, 8)
+Instance.new("UICorner", SpeedBox).CornerRadius = UDim.new(0, 6)
 
-local JumpBtn = createButton("Inf Jump: OFF", UDim2.new(0, 13, 0, 156)) -- Diperbesar 30%
-local AntiClipBtn = createButton("Anti Clip: OFF", UDim2.new(0, 13, 0, 214)) -- Diperbesar 30%
-local ESPBtn = createButton("ESP: OFF", UDim2.new(0, 13, 0, 273)) -- Diperbesar 30%
-local BlockBtn = createButton("Block Bawah: OFF", UDim2.new(0, 13, 0, 331)) -- Diperbesar 30%
+-- Other Buttons (arranged neatly with consistent spacing)
+local JumpBtn = createButton("Inf Jump: OFF", UDim2.new(0, 10, 0, 110))
+local AntiClipBtn = createButton("Anti Clip: OFF", UDim2.new(0, 10, 0, 150))
+local ESPBtn = createButton("ESP: OFF", UDim2.new(0, 10, 0, 190))
+local BlockBtn = createButton("Block Bawah: OFF", UDim2.new(0, 10, 0, 230))
 
 -- Variables
 local speedEnabled = settings.speedEnabled or false
@@ -169,7 +177,7 @@ local antiClipEnabled = settings.antiClipEnabled or false
 local espEnabled = settings.espEnabled or false
 local blockEnabled = settings.blockEnabled or false
 
--- Improved Infinite Jump Handler
+-- Infinite Jump Handler
 UserInputService.JumpRequest:Connect(function()
     if infJumpEnabled then
         local char = player.Character
@@ -182,7 +190,7 @@ UserInputService.JumpRequest:Connect(function()
     end
 end)
 
--- Anti Clip Implementation (non-move, only CanCollide false on all parts)
+-- Anti Clip Implementation
 local function setAntiClip(state)
     local char = player.Character
     if not char then return end
@@ -331,7 +339,7 @@ Players.PlayerRemoving:Connect(function(plr)
     removeEspLabel(plr)
 end)
 
--- Blok transparan statis di bawah karakter untuk cegah jatuh & diam
+-- Block below character
 local blockPart
 local function createBlock()
     if blockPart then blockPart:Destroy() end
@@ -350,7 +358,6 @@ local function createBlock()
     blockPart.Color = Color3.fromRGB(255, 20, 0)
     blockPart.Parent = workspace
 
-    -- Posisi block tetap di bawah HumanoidRootPart, tidak bergerak mengikuti secara dinamis agar tidak naik turun
     local pos = hrp.Position
     blockPart.CFrame = CFrame.new(pos.X, pos.Y - (hrp.Size.Y / 2 + blockPart.Size.Y/2), pos.Z)
 end
@@ -376,7 +383,7 @@ BlockBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- On respawn block otomatis dibuat jika enabled
+-- Character added event
 player.CharacterAdded:Connect(function(char)
     local hum = char:WaitForChild("Humanoid")
     local hrp = char:WaitForChild("HumanoidRootPart")
@@ -390,7 +397,6 @@ player.CharacterAdded:Connect(function(char)
     setAntiClip(antiClipEnabled)
 
     if blockEnabled then
-        -- Delay sedikit biar HumanoidRootPart sudah pasti ada
         wait(0.1)
         createBlock()
     else
@@ -405,27 +411,31 @@ player.Idled:Connect(function()
     VirtualUser:ClickButton2(Vector2.new())
 end)
 
--- Minimize and Close buttons (diperbesar 30%)
+-- Minimize and Close buttons
 local MinBtn = Instance.new("TextButton")
-MinBtn.Size = UDim2.new(0, 39, 0, 39) -- Diperbesar 30%
-MinBtn.Position = UDim2.new(1, -78, 0, 0) -- Diperbesar 30%
+MinBtn.Size = UDim2.new(0, 30, 0, 30)
+MinBtn.Position = UDim2.new(1, -60, 0, 0)
 MinBtn.Text = settings.minimized and "+" or "-"
 MinBtn.TextScaled = true
 MinBtn.Font = Enum.Font.GothamBold
 MinBtn.BackgroundColor3 = colorBlackGlossyLight
 MinBtn.TextColor3 = colorWhite
+MinBtn.TextStrokeTransparency = 0
+MinBtn.TextStrokeColor3 = Color3.new(0, 0, 0)
 MinBtn.Parent = MainFrame
 Instance.new("UICorner", MinBtn).CornerRadius = UDim.new(0, 8)
 MinBtn.ZIndex = 20
 
 local CloseBtn = Instance.new("TextButton")
-CloseBtn.Size = UDim2.new(0, 39, 0, 39) -- Diperbesar 30%
-CloseBtn.Position = UDim2.new(1, -39, 0, 0) -- Diperbesar 30%
+CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+CloseBtn.Position = UDim2.new(1, -30, 0, 0)
 CloseBtn.Text = "X"
 CloseBtn.TextScaled = true
 CloseBtn.Font = Enum.Font.GothamBold
 CloseBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
 CloseBtn.TextColor3 = colorWhite
+CloseBtn.TextStrokeTransparency = 0
+CloseBtn.TextStrokeColor3 = Color3.new(0, 0, 0)
 CloseBtn.Parent = MainFrame
 Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 8)
 CloseBtn.ZIndex = 20
@@ -435,11 +445,11 @@ local elementsToToggle = {SpeedBtn, SpeedBox, JumpBtn, AntiClipBtn, ESPBtn, Bloc
 -- Restore minimized state
 if settings.minimized then
     for _, v in ipairs(elementsToToggle) do v.Visible = false end
-    MainFrame.Size = UDim2.new(0, 292, 0, 52) -- Diperbesar 30%
+    MainFrame.Size = UDim2.new(0, 225, 0, 40)
     MinBtn.Text = "+"
 else
     for _, v in ipairs(elementsToToggle) do v.Visible = true end
-    MainFrame.Size = UDim2.new(0, 292, 0, 370) -- Diperbesar 30%
+    MainFrame.Size = UDim2.new(0, 225, 0, 285)
     MinBtn.Text = "-"
 end
 
@@ -449,11 +459,11 @@ MinBtn.MouseButton1Click:Connect(function()
 
     if settings.minimized then
         for _, v in ipairs(elementsToToggle) do v.Visible = false end
-        MainFrame.Size = UDim2.new(0, 292, 0, 52) -- Diperbesar 30%
+        MainFrame.Size = UDim2.new(0, 225, 0, 40)
         MinBtn.Text = "+"
     else
         for _, v in ipairs(elementsToToggle) do v.Visible = true end
-        MainFrame.Size = UDim2.new(0, 292, 0, 370) -- Diperbesar 30%
+        MainFrame.Size = UDim2.new(0, 225, 0, 285)
         MinBtn.Text = "-"
     end
 end)
@@ -462,7 +472,7 @@ CloseBtn.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
 end)
 
--- Manual Dragging for MainFrame
+-- Dragging functionality
 local dragging
 local dragInput
 local dragStart
