@@ -40,6 +40,7 @@ end)
 -- Create GUI (Persistent)
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.ResetOnSpawn = false
+ScreenGui.IgnoreGuiInset = true
 ScreenGui.Parent = player:WaitForChild("PlayerGui")
 
 local MainFrame = Instance.new("Frame")
@@ -56,7 +57,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 local TitleBar = Instance.new("TextLabel")
 TitleBar.Size = UDim2.new(1, -60, 0, 30)
 TitleBar.BackgroundTransparency = 1
-TitleBar.Text = "Speed & Jump Control"
+TitleBar.Text = "ARI HUB"
 TitleBar.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleBar.TextScaled = true
 TitleBar.Font = Enum.Font.GothamBold
@@ -73,6 +74,7 @@ MinBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 200)
 MinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 MinBtn.Parent = MainFrame
 Instance.new("UICorner", MinBtn).CornerRadius = UDim.new(0, 8)
+MinBtn.ZIndex = 2
 
 -- Close Button
 local CloseBtn = Instance.new("TextButton")
@@ -85,6 +87,7 @@ CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
 CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 CloseBtn.Parent = MainFrame
 Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 8)
+CloseBtn.ZIndex = 2
 
 -- Buttons
 local SpeedBtn = Instance.new("TextButton")
@@ -97,6 +100,7 @@ SpeedBtn.TextScaled = true
 SpeedBtn.Font = Enum.Font.GothamBold
 SpeedBtn.Parent = MainFrame
 Instance.new("UICorner", SpeedBtn).CornerRadius = UDim.new(0, 8)
+SpeedBtn.ZIndex = 1
 
 local SpeedBox = Instance.new("TextBox")
 SpeedBox.Size = UDim2.new(1, -20, 0, 30)
@@ -108,6 +112,7 @@ SpeedBox.TextScaled = true
 SpeedBox.Font = Enum.Font.GothamBold
 SpeedBox.Parent = MainFrame
 Instance.new("UICorner", SpeedBox).CornerRadius = UDim.new(0, 8)
+SpeedBox.ZIndex = 1
 
 local JumpBtn = Instance.new("TextButton")
 JumpBtn.Size = UDim2.new(1, -20, 0, 40)
@@ -119,8 +124,9 @@ JumpBtn.TextScaled = true
 JumpBtn.Font = Enum.Font.GothamBold
 JumpBtn.Parent = MainFrame
 Instance.new("UICorner", JumpBtn).CornerRadius = UDim.new(0, 8)
+JumpBtn.ZIndex = 1
 
--- Speed Button Logic (fixed humanoid update)
+-- Speed Button Logic (click fix)
 SpeedBtn.MouseButton1Click:Connect(function()
     local char = player.Character or player.CharacterAdded:Wait()
     local hum = char:FindFirstChildOfClass("Humanoid")
@@ -158,7 +164,7 @@ JumpBtn.MouseButton1Click:Connect(function()
     JumpBtn.Text = infJumpEnabled and "Inf Jump: ON" or "Inf Jump: OFF"
 end)
 
--- Minimize Logic (fixed)
+-- Minimize Logic (click fix)
 local minimized = false
 local elementsToToggle = {SpeedBtn, SpeedBox, JumpBtn}
 
