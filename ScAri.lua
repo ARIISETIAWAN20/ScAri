@@ -1,4 +1,4 @@
--- ARI HUB Full Version tanpa flicker fire
+-- ARI HUB Full Version tanpa flicker fire, tanpa drag, posisi fixed di tengah atas layar
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -8,7 +8,6 @@ local HttpService = game:GetService("HttpService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- File system API kompatibel Delta Executor & lainnya
 local DeltaAPI = {}
 
 if type(getgenv) == "function" and type(getgenv().Delta) == "table" then
@@ -76,7 +75,6 @@ local cBlackLight = Color3.fromRGB(40, 40, 40)
 local cRed = Color3.fromRGB(255, 20, 0)
 local cWhite = Color3.fromRGB(255, 255, 255)
 
--- GUI Setup
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "ARI_HUB_GUI"
 ScreenGui.ResetOnSpawn = false
@@ -93,11 +91,11 @@ local verticalSpacing = 45 * scale
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, mainWidth, 0, mainHeight)
-MainFrame.Position = UDim2.new(0.5, -mainWidth / 2, 0.5, -mainHeight / 2)
+MainFrame.Position = UDim2.new(0.5, -mainWidth / 2, 0, 10) -- posisi fixed tengah atas dengan offset 10px dari atas
 MainFrame.BackgroundColor3 = cBlack
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
-MainFrame.Draggable = true
+MainFrame.Draggable = false -- Nonaktifkan drag
 MainFrame.Parent = ScreenGui
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
@@ -135,9 +133,6 @@ FireFrame.Parent = MainFrame
 FireFrame.ZIndex = 9
 Instance.new("UICorner", FireFrame).CornerRadius = UDim.new(0, 5)
 
--- No flicker animation here, just static red translucent frame
-
--- Button helper
 local function createButton(text, idx)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(1, -20 * scale, 0, btnHeight)
@@ -159,7 +154,6 @@ local AntiClipBtn = createButton("Anti Clip: OFF", 5)
 local ESPBtn = createButton("ESP: OFF", 6)
 local BlockBtn = createButton("Block Under: OFF", 7)
 
--- TextBox helper
 local function createTextBox(text, idx)
     local tb = Instance.new("TextBox")
     tb.Size = UDim2.new(1, -20 * scale, 0, tbHeight)
@@ -229,7 +223,6 @@ end)
 local function setAntiClip(state)
     local char = player.Character
     if not char then return end
-
     for _, part in pairs(char:GetChildren()) do
         if part:IsA("BasePart") then
             part.CanCollide = not state
@@ -242,7 +235,6 @@ SpeedBtn.MouseButton1Click:Connect(function()
     speedEnabled = not speedEnabled
     settings.speedEnabled = speedEnabled
     saveSettings(settings)
-
     local char = player.Character or player.CharacterAdded:Wait()
     local hum = char:FindFirstChildOfClass("Humanoid")
     if hum then
@@ -301,7 +293,6 @@ AntiClipBtn.MouseButton1Click:Connect(function()
 end)
 
 -- ESP
-
 local espLabels = {}
 
 local function createEspLabel(plr)
@@ -383,7 +374,7 @@ Players.PlayerRemoving:Connect(function(plr)
     removeEspLabel(plr)
 end)
 
--- Block Under Character (transparant block untuk mencegah jatuh dan mengunci posisi)
+-- Block Under Character (transparan block)
 local blockPart
 
 local function createBlock()
@@ -407,7 +398,6 @@ local function updateBlockPosition()
     if not char then return end
     local root = char:FindFirstChild("HumanoidRootPart")
     if not root then return end
-    -- block tepat dibawah HumanoidRootPart sekitar 3 studs
     blockPart.CFrame = CFrame.new(root.Position.X, root.Position.Y - 3, root.Position.Z)
 end
 
@@ -471,7 +461,7 @@ player.Idled:Connect(function()
     VirtualUser:ClickButton2(Vector2.new())
 end)
 
--- Initial state apply
+-- Initial apply states
 if player.Character then
     setAntiClip(antiClipEnabled)
     if speedEnabled then
@@ -486,10 +476,8 @@ if player.Character then
     end
 end
 
--- Set button text initial state
 SpeedBtn.Text = speedEnabled and "Speed: ON" or "Speed: OFF"
 JumpBtn.Text = infJumpEnabled and "Inf Jump: ON" or "Inf Jump: OFF"
 AntiClipBtn.Text = antiClipEnabled and "Anti Clip: ON" or "Anti Clip: OFF"
 ESPBtn.Text = espEnabled and "ESP: ON" or "ESP: OFF"
 BlockBtn.Text = blockEnabled and "Block Under: ON" or "Block Under: OFF"
-
