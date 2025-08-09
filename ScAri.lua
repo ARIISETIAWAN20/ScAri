@@ -1,6 +1,7 @@
--- Speed & Infinite Jump GUI Script for Roblox (Delta Executor Compatible)
+-- Speed & Infinite Jump GUI Script with Anti-AFK (Delta Executor Compatible)
 -- Default speed: 16, Max speed: 100000
--- Features: Adjustable Speed & Inf Jump Power (saved in ARI HUB.json), Toggle Speed, Toggle Infinite Jump, Minimize/Maximize, Close GUI, Persistent across respawn
+-- Inf Jump fixed power: 50 (no adjustable textbox)
+-- Features: Toggle Speed, Toggle Infinite Jump, Minimize/Maximize, Close GUI, Persistent across respawn
 
 local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
@@ -33,10 +34,17 @@ UIS.JumpRequest:Connect(function()
         local character = player.Character
         if character and character:FindFirstChildOfClass("Humanoid") then
             character:FindFirstChildOfClass("Humanoid").UseJumpPower = true
-            character:FindFirstChildOfClass("Humanoid").JumpPower = tonumber(settings.jumpPower) or 50
+            character:FindFirstChildOfClass("Humanoid").JumpPower = settings.jumpPower
             character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
         end
     end
+end)
+
+-- Anti AFK
+player.Idled:Connect(function()
+    game:GetService("VirtualUser"):Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+    task.wait(1)
+    game:GetService("VirtualUser"):Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
 end)
 
 -- Create GUI (Persistent)
@@ -46,8 +54,8 @@ ScreenGui.IgnoreGuiInset = true
 ScreenGui.Parent = player:WaitForChild("PlayerGui")
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 250, 0, 240)
-MainFrame.Position = UDim2.new(0.5, -125, 0.5, -120)
+MainFrame.Size = UDim2.new(0, 250, 0, 190)
+MainFrame.Position = UDim2.new(0.5, -125, 0.5, -95)
 MainFrame.BackgroundColor3 = Color3.fromRGB(80, 0, 120)
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
@@ -103,22 +111,10 @@ SpeedBtn.Font = Enum.Font.GothamBold
 SpeedBtn.Parent = MainFrame
 Instance.new("UICorner", SpeedBtn).CornerRadius = UDim.new(0, 8)
 
--- Speed TextBox
-local SpeedBox = Instance.new("TextBox")
-SpeedBox.Size = UDim2.new(1, -20, 0, 30)
-SpeedBox.Position = UDim2.new(0, 10, 0, 85)
-SpeedBox.BackgroundColor3 = Color3.fromRGB(100, 0, 150)
-SpeedBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-SpeedBox.Text = tostring(settings.speed)
-SpeedBox.TextScaled = true
-SpeedBox.Font = Enum.Font.GothamBold
-SpeedBox.Parent = MainFrame
-Instance.new("UICorner", SpeedBox).CornerRadius = UDim.new(0, 8)
-
 -- Jump Button
 local JumpBtn = Instance.new("TextButton")
 JumpBtn.Size = UDim2.new(1, -20, 0, 40)
-JumpBtn.Position = UDim2.new(0, 10, 0, 125)
+JumpBtn.Position = UDim2.new(0, 10, 0, 90)
 JumpBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 180)
 JumpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 JumpBtn.Text = "Inf Jump: OFF"
@@ -126,18 +122,6 @@ JumpBtn.TextScaled = true
 JumpBtn.Font = Enum.Font.GothamBold
 JumpBtn.Parent = MainFrame
 Instance.new("UICorner", JumpBtn).CornerRadius = UDim.new(0, 8)
-
--- Jump Power TextBox
-local JumpBox = Instance.new("TextBox")
-JumpBox.Size = UDim2.new(1, -20, 0, 30)
-JumpBox.Position = UDim2.new(0, 10, 0, 170)
-JumpBox.BackgroundColor3 = Color3.fromRGB(100, 0, 150)
-JumpBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-JumpBox.Text = tostring(settings.jumpPower)
-JumpBox.TextScaled = true
-JumpBox.Font = Enum.Font.GothamBold
-JumpBox.Parent = MainFrame
-Instance.new("UICorner", JumpBox).CornerRadius = UDim.new(0, 8)
 
 -- Speed Toggle Logic
 SpeedBtn.MouseButton1Click:Connect(function()
@@ -155,49 +139,22 @@ SpeedBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Save Speed Setting
-SpeedBox.FocusLost:Connect(function()
-    local val = tonumber(SpeedBox.Text)
-    if val and val >= 16 and val <= 100000 then
-        settings.speed = val
-        saveSettings(settings)
-        if speedEnabled then
-            local char = player.Character or player.CharacterAdded:Wait()
-            local hum = char:FindFirstChildOfClass("Humanoid")
-            if hum then hum.WalkSpeed = val end
-        end
-    else
-        SpeedBox.Text = tostring(settings.speed)
-    end
-end)
-
 -- Jump Toggle Logic
 JumpBtn.MouseButton1Click:Connect(function()
     infJumpEnabled = not infJumpEnabled
     JumpBtn.Text = infJumpEnabled and "Inf Jump: ON" or "Inf Jump: OFF"
 end)
 
--- Save Jump Power Setting
-JumpBox.FocusLost:Connect(function()
-    local val = tonumber(JumpBox.Text)
-    if val and val >= 50 and val <= 1000 then
-        settings.jumpPower = val
-        saveSettings(settings)
-    else
-        JumpBox.Text = tostring(settings.jumpPower)
-    end
-end)
-
 -- Minimize Logic
 local minimized = false
-local elementsToToggle = {SpeedBtn, SpeedBox, JumpBtn, JumpBox}
+local elementsToToggle = {SpeedBtn, JumpBtn}
 
 MinBtn.MouseButton1Click:Connect(function()
     minimized = not minimized
     for _, obj in ipairs(elementsToToggle) do
         obj.Visible = not minimized
     end
-    MainFrame.Size = minimized and UDim2.new(0, 250, 0, 30) or UDim2.new(0, 250, 0, 240)
+    MainFrame.Size = minimized and UDim2.new(0, 250, 0, 30) or UDim2.new(0, 250, 0, 190)
     MinBtn.Text = minimized and "+" or "-"
 end)
 
