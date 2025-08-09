@@ -4,10 +4,10 @@ local UserInputService = game:GetService("UserInputService")
 local HttpService = game:GetService("HttpService")
 
 local player = Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
+local fileName = "ARI HUB.json"
 
+-- API File System untuk Delta Executor & fallback
 local DeltaAPI = {}
-
 if type(getgenv) == "function" and type(getgenv().Delta) == "table" then
     DeltaAPI.isfile = getgenv().Delta.isfile
     DeltaAPI.readfile = getgenv().Delta.readfile
@@ -18,22 +18,15 @@ else
     DeltaAPI.writefile = writefile
 end
 
-local fileName = "ARI HUB.json"
-
 local function safeIsFile(fname)
-    if type(DeltaAPI.isfile) == "function" then
-        return DeltaAPI.isfile(fname)
-    else
-        return false
-    end
+    return type(DeltaAPI.isfile) == "function" and DeltaAPI.isfile(fname)
 end
 
 local function safeReadFile(fname)
-    if type(DeltaAPI.readfile) == "function" and safeIsFile(fname) then
+    if safeIsFile(fname) and type(DeltaAPI.readfile) == "function" then
         return DeltaAPI.readfile(fname)
-    else
-        return nil
     end
+    return nil
 end
 
 local function safeWriteFile(fname, content)
@@ -42,176 +35,163 @@ local function safeWriteFile(fname, content)
     end
 end
 
+-- Load dan simpan pengaturan
 local function loadSettings()
     local data = safeReadFile(fileName)
     if data then
-        local suc, res = pcall(function() return HttpService:JSONDecode(data) end)
-        if suc and type(res) == "table" then
-            return res
+        local success, result = pcall(function() return HttpService:JSONDecode(data) end)
+        if success and type(result) == "table" then
+            return result
         end
     end
-    return {
-        speed = 16,
-        jumpPower = 50,
-        speedEnabled = false,
-        infJumpEnabled = false,
-        antiClipEnabled = false,
-        espEnabled = false,
-        blockEnabled = false,
-    }
+    return {speed = 16, jumpPower = 50, speedEnabled = false, infJumpEnabled = false, antiClipEnabled = false, espEnabled = false, blockEnabled = false}
 end
 
-local function saveSettings(settings)
-    local json = HttpService:JSONEncode(settings)
+local function saveSettings(tbl)
+    local json = HttpService:JSONEncode(tbl)
     safeWriteFile(fileName, json)
 end
 
 local settings = loadSettings()
 
-local cBlack = Color3.fromRGB(20, 20, 20)
-local cBlackLight = Color3.fromRGB(40, 40, 40)
-local cWhite = Color3.fromRGB(255, 255, 255)
+-- Warna
+local colorBlack = Color3.fromRGB(20, 20, 20)
+local colorBlackLight = Color3.fromRGB(40, 40, 40)
+local colorWhite = Color3.fromRGB(255, 255, 255)
 
+-- GUI Creation
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "ARI_HUB_GUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.IgnoreGuiInset = true
-ScreenGui.Parent = playerGui
+ScreenGui.Parent = player:WaitForChild("PlayerGui")
 
-local scale = 1
-local mainWidth = 260 * scale
-local mainHeight = 360 * scale
-local btnHeight = 40 * scale
-local tbHeight = 30 * scale
-local paddingLeft = 15 * scale
-local paddingTop = 45 * scale
-local gap = 12 * scale
+local mainWidth = 260
+local mainHeight = 360
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, mainWidth, 0, mainHeight)
-MainFrame.Position = UDim2.new(0.5, -mainWidth / 2, 0, 10) -- Fixed top center
-MainFrame.BackgroundColor3 = cBlack
+MainFrame.Position = UDim2.new(0.5, -mainWidth/2, 0, 10) -- Tengah atas layar
+MainFrame.BackgroundColor3 = colorBlack
 MainFrame.BorderSizePixel = 0
-MainFrame.Active = true
-MainFrame.Draggable = false
 MainFrame.Parent = ScreenGui
-Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12)
 
 local function addGlossyEffect(obj)
     local grad = Instance.new("UIGradient")
     grad.Rotation = 45
     grad.Transparency = NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 0.4),
+        NumberSequenceKeypoint.new(0, 0.35),
         NumberSequenceKeypoint.new(0.5, 0.1),
-        NumberSequenceKeypoint.new(1, 0.4),
+        NumberSequenceKeypoint.new(1, 0.35)
     }
     grad.Parent = obj
 end
-
 addGlossyEffect(MainFrame)
 
--- Rainbow effect untuk title "ARI HUB"
+-- Rainbow Effect untuk Title "ARI HUB"
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, -90, 0, 35)
-Title.Position = UDim2.new(0, paddingLeft, 0, 5)
+Title.Size = UDim2.new(1, -20, 0, 40)
+Title.Position = UDim2.new(0, 10, 0, 10)
 Title.BackgroundTransparency = 1
 Title.Text = "ARI HUB"
 Title.TextScaled = true
 Title.Font = Enum.Font.GothamBlack
 Title.Parent = MainFrame
-Title.ZIndex = 10
 
--- Fungsi untuk rainbow color looping
+-- Fungsi rainbow warna
 spawn(function()
-    local hue = 0
     while Title.Parent do
-        hue = (hue + 0.005) % 1
-        Title.TextColor3 = Color3.fromHSV(hue, 1, 1)
-        wait(0.03)
+        for hue = 0, 1, 0.01 do
+            Title.TextColor3 = Color3.fromHSV(hue, 1, 1)
+            wait(0.03)
+        end
     end
 end)
 
-local FireFrame = Instance.new("Frame")
-FireFrame.Size = Title.Size
-FireFrame.Position = Title.Position
-FireFrame.BackgroundTransparency = 0.7
-FireFrame.BackgroundColor3 = Color3.fromHSV(0, 0, 0.4) -- jadi lebih gelap, tanpa flicker
-FireFrame.BorderSizePixel = 0
-FireFrame.Parent = MainFrame
-FireFrame.ZIndex = 9
-Instance.new("UICorner", FireFrame).CornerRadius = UDim.new(0, 5)
-
-local function createButton(text, idx)
+-- Helper buat tombol dan textbox dengan jarak rapih
+local function createButton(text, yPos)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -paddingLeft * 2, 0, btnHeight)
-    btn.Position = UDim2.new(0, paddingLeft, 0, paddingTop + (btnHeight + gap) * (idx - 1))
-    btn.BackgroundColor3 = cBlackLight
-    btn.TextColor3 = cWhite
+    btn.Size = UDim2.new(1, -20, 0, 40)
+    btn.Position = UDim2.new(0, 10, 0, yPos)
+    btn.BackgroundColor3 = colorBlackLight
+    btn.TextColor3 = colorWhite
     btn.Text = text
     btn.TextScaled = true
     btn.Font = Enum.Font.GothamBold
     btn.Parent = MainFrame
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 10)
     addGlossyEffect(btn)
     return btn
 end
 
-local function createTextBox(text, idx)
+local function createTextBox(text, yPos)
     local tb = Instance.new("TextBox")
-    tb.Size = UDim2.new(1, -paddingLeft * 2, 0, tbHeight)
-    tb.Position = UDim2.new(0, paddingLeft, 0, paddingTop + (btnHeight + gap) * (idx - 1))
-    tb.BackgroundColor3 = cBlackLight
-    tb.TextColor3 = cWhite
+    tb.Size = UDim2.new(1, -20, 0, 30)
+    tb.Position = UDim2.new(0, 10, 0, yPos)
+    tb.BackgroundColor3 = colorBlackLight
+    tb.TextColor3 = colorWhite
     tb.Text = text
     tb.TextScaled = true
     tb.Font = Enum.Font.GothamBold
     tb.Parent = MainFrame
-    Instance.new("UICorner", tb).CornerRadius = UDim.new(0, 8)
+    Instance.new("UICorner", tb).CornerRadius = UDim.new(0, 10)
     addGlossyEffect(tb)
     return tb
 end
 
-local SpeedBtn = createButton("Speed: OFF", 1)
-local SpeedBox = createTextBox(tostring(settings.speed), 2)
-local JumpBtn = createButton("Inf Jump: OFF", 3)
-local JumpBox = createTextBox(tostring(settings.jumpPower), 4)
-local AntiClipBtn = createButton("Anti Clip: OFF", 5)
-local ESPBtn = createButton("ESP: OFF", 6)
-local BlockBtn = createButton("Block Under: OFF", 7)
+-- Buat tombol dan textbox dengan jarak
+local SpeedBtn = createButton("Speed: OFF", 65)
+local SpeedBox = createTextBox(tostring(settings.speed), 110)
 
+local JumpBtn = createButton("Inf Jump: OFF", 150)
+local JumpBox = createTextBox(tostring(settings.jumpPower), 195)
+
+local AntiClipBtn = createButton("Anti Clip: OFF", 235)
+local ESPBtn = createButton("ESP: OFF", 280)
+local BlockBtn = createButton("Block Under: OFF", 325)
+
+-- Minimize dan Close button
 local MinBtn = Instance.new("TextButton")
 MinBtn.Size = UDim2.new(0, 30, 0, 30)
-MinBtn.Position = UDim2.new(1, -90, 0, 5)
+MinBtn.Position = UDim2.new(1, -65, 0, 10)
 MinBtn.Text = "-"
 MinBtn.TextScaled = true
 MinBtn.Font = Enum.Font.GothamBold
-MinBtn.BackgroundColor3 = cBlackLight
-MinBtn.TextColor3 = cWhite
+MinBtn.BackgroundColor3 = colorBlackLight
+MinBtn.TextColor3 = colorWhite
 MinBtn.Parent = MainFrame
-Instance.new("UICorner", MinBtn).CornerRadius = UDim.new(0, 8)
+Instance.new("UICorner", MinBtn).CornerRadius = UDim.new(0, 10)
 addGlossyEffect(MinBtn)
 MinBtn.ZIndex = 20
 
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Size = UDim2.new(0, 30, 0, 30)
-CloseBtn.Position = UDim2.new(1, -50, 0, 5)
+CloseBtn.Position = UDim2.new(1, -30, 0, 10)
 CloseBtn.Text = "X"
 CloseBtn.TextScaled = true
 CloseBtn.Font = Enum.Font.GothamBold
 CloseBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
-CloseBtn.TextColor3 = cWhite
+CloseBtn.TextColor3 = colorWhite
 CloseBtn.Parent = MainFrame
-Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 8)
+Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 10)
 CloseBtn.ZIndex = 20
 
--- States
-local speedEnabled = settings.speedEnabled or false
-local infJumpEnabled = settings.infJumpEnabled or false
-local antiClipEnabled = settings.antiClipEnabled or false
-local espEnabled = settings.espEnabled or false
-local blockEnabled = settings.blockEnabled or false
+-- Status toggle
+local speedEnabled = settings.speedEnabled
+local infJumpEnabled = settings.infJumpEnabled
+local antiClipEnabled = settings.antiClipEnabled
+local espEnabled = settings.espEnabled
+local blockEnabled = settings.blockEnabled
 
--- Infinite Jump Handler
+-- Update tombol sesuai status awal
+SpeedBtn.Text = speedEnabled and "Speed: ON" or "Speed: OFF"
+JumpBtn.Text = infJumpEnabled and "Inf Jump: ON" or "Inf Jump: OFF"
+AntiClipBtn.Text = antiClipEnabled and "Anti Clip: ON" or "Anti Clip: OFF"
+ESPBtn.Text = espEnabled and "ESP: ON" or "ESP: OFF"
+BlockBtn.Text = blockEnabled and "Block Under: ON" or "Block Under: OFF"
+
+-- Infinite Jump
 UserInputService.JumpRequest:Connect(function()
     if infJumpEnabled then
         local char = player.Character
@@ -230,34 +210,33 @@ end)
 local function setAntiClip(state)
     local char = player.Character
     if not char then return end
-    for _, part in pairs(char:GetChildren()) do
-        if part:IsA("BasePart") then
-            part.CanCollide = not state
+    for _, p in pairs(char:GetChildren()) do
+        if p:IsA("BasePart") then
+            p.CanCollide = not state
         end
     end
 end
 
--- Speed toggle
+-- Speed Toggle
 SpeedBtn.MouseButton1Click:Connect(function()
+    local char = player.Character or player.CharacterAdded:Wait()
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if not hum then return end
     speedEnabled = not speedEnabled
     settings.speedEnabled = speedEnabled
     saveSettings(settings)
-    local char = player.Character or player.CharacterAdded:Wait()
-    local hum = char:FindFirstChildOfClass("Humanoid")
-    if hum then
-        if speedEnabled then
-            hum.WalkSpeed = tonumber(settings.speed) or 16
-            SpeedBtn.Text = "Speed: ON"
-        else
-            hum.WalkSpeed = 16
-            SpeedBtn.Text = "Speed: OFF"
-        end
+    if speedEnabled then
+        hum.WalkSpeed = tonumber(settings.speed) or 16
+        SpeedBtn.Text = "Speed: ON"
+    else
+        hum.WalkSpeed = 16
+        SpeedBtn.Text = "Speed: OFF"
     end
 end)
 
 SpeedBox.FocusLost:Connect(function()
     local val = tonumber(SpeedBox.Text)
-    if val and val >= 16 and val <= 100000 then
+    if val and val >= 16 and val <= 10000000 then
         settings.speed = val
         saveSettings(settings)
         if speedEnabled then
@@ -270,7 +249,7 @@ SpeedBox.FocusLost:Connect(function()
     end
 end)
 
--- Jump toggle
+-- Jump Toggle
 JumpBtn.MouseButton1Click:Connect(function()
     infJumpEnabled = not infJumpEnabled
     settings.infJumpEnabled = infJumpEnabled
@@ -288,26 +267,25 @@ JumpBox.FocusLost:Connect(function()
     end
 end)
 
--- Anti Clip toggle
+-- Anti Clip Toggle
 AntiClipBtn.MouseButton1Click:Connect(function()
     antiClipEnabled = not antiClipEnabled
     settings.antiClipEnabled = antiClipEnabled
     saveSettings(settings)
-    setAntiClip(antiClipEnabled)
     AntiClipBtn.Text = antiClipEnabled and "Anti Clip: ON" or "Anti Clip: OFF"
+    setAntiClip(antiClipEnabled)
 end)
 
--- ESP implementation
+-- ESP Implementation
 local espLabels = {}
 
 local function createEspLabel(plr)
     if plr == player then return end
     if espLabels[plr] then return end
-    local character = plr.Character
-    if not character then return end
-    local head = character:FindFirstChild("Head")
+    local char = plr.Character
+    if not char then return end
+    local head = char:FindFirstChild("Head")
     if not head then return end
-
     local billboard = Instance.new("BillboardGui")
     billboard.Name = "PlayerESP"
     billboard.Adornee = head
@@ -315,17 +293,15 @@ local function createEspLabel(plr)
     billboard.Size = UDim2.new(0, 200, 0, 50)
     billboard.StudsOffset = Vector3.new(0, 2, 0)
     billboard.Parent = head
-
     local textLabel = Instance.new("TextLabel")
     textLabel.Size = UDim2.new(1, 0, 1, 0)
     textLabel.BackgroundTransparency = 1
-    textLabel.TextColor3 = cWhite
+    textLabel.TextColor3 = colorWhite
     textLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
     textLabel.TextStrokeTransparency = 0
     textLabel.TextScaled = true
     textLabel.Font = Enum.Font.GothamBold
     textLabel.Parent = billboard
-
     espLabels[plr] = textLabel
 end
 
@@ -379,114 +355,24 @@ Players.PlayerRemoving:Connect(function(plr)
     removeEspLabel(plr)
 end)
 
--- Block under character, fixed so it does not go up automatically
+-- Block transparan di bawah karakter
+local blockPart = nil
 
-local blockPart
-
-local function createBlock()
-    if blockPart and blockPart.Parent then
-        blockPart:Destroy()
-    end
-    blockPart = Instance.new("Part")
-    blockPart.Name = "AntiFallBlock"
-    blockPart.Size = Vector3.new(6, 0.5, 6)
-    blockPart.Transparency = 0.7
-    blockPart.Anchored = true
-    blockPart.CanCollide = true
-    blockPart.Material = Enum.Material.Neon
-    blockPart.Color = Color3.fromRGB(255, 0, 0)
-    blockPart.Parent = workspace
-end
-
-local function updateBlockPosition()
-    if not blockPart or not blockPart.Parent then return end
+local function createBlockUnder()
     local char = player.Character
     if not char then return end
-    local root = char:FindFirstChild("HumanoidRootPart")
-    if not root then return end
-    -- Fix posisi: blok tepat berada 3 stud di bawah karakter (Y = root.Position.Y - 3)
-    -- Jangan naik sendiri karena cuma mengikuti X,Z dan tetap Y posisi statis dari root.Y - 3
-    blockPart.CFrame = CFrame.new(root.Position.X, root.Position.Y - 3, root.Position.Z)
-end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
 
-local blockConnection
-
-BlockBtn.MouseButton1Click:Connect(function()
-    blockEnabled = not blockEnabled
-    settings.blockEnabled = blockEnabled
-    saveSettings(settings)
-
-    if blockEnabled then
-        createBlock()
-        updateBlockPosition()
-        blockConnection = RunService.Heartbeat:Connect(updateBlockPosition)
-        BlockBtn.Text = "Block Under: ON"
-    else
-        if blockConnection then
-            blockConnection:Disconnect()
-            blockConnection = nil
-        end
-        if blockPart and blockPart.Parent then
-            blockPart:Destroy()
-            blockPart = nil
-        end
-        BlockBtn.Text = "Block Under: OFF"
+    if blockPart then
+        blockPart:Destroy()
+        blockPart = nil
     end
-end)
 
--- Minimize and Close buttons
-
-local minimized = false
-local toggleObjects = {SpeedBtn, SpeedBox, JumpBtn, JumpBox, AntiClipBtn, ESPBtn, BlockBtn}
-
-MinBtn.MouseButton1Click:Connect(function()
-    minimized = not minimized
-    for _, obj in ipairs(toggleObjects) do
-        obj.Visible = not minimized
-    end
-    MainFrame.Size = minimized and UDim2.new(0, mainWidth, 0, 35) or UDim2.new(0, mainWidth, 0, mainHeight)
-    MinBtn.Text = minimized and "+" or "-"
-end)
-
-CloseBtn.MouseButton1Click:Connect(function()
-    ScreenGui:Destroy()
-end)
-
--- Restore on respawn
-player.CharacterAdded:Connect(function(char)
-    local hum = char:WaitForChild("Humanoid")
-    if speedEnabled then
-        hum.WalkSpeed = tonumber(settings.speed) or 16
-    else
-        hum.WalkSpeed = 16
-    end
-    setAntiClip(antiClipEnabled)
-end)
-
--- Anti AFK
-local VirtualUser = game:GetService("VirtualUser")
-player.Idled:Connect(function()
-    VirtualUser:CaptureController()
-    VirtualUser:ClickButton2(Vector2.new())
-end)
-
--- Initial apply states
-if player.Character then
-    setAntiClip(antiClipEnabled)
-    if speedEnabled then
-        local hum = player.Character:FindFirstChildOfClass("Humanoid")
-        if hum then
-            hum.WalkSpeed = tonumber(settings.speed) or 16
-        end
-    end
-    if blockEnabled then
-        createBlock()
-        blockConnection = RunService.Heartbeat:Connect(updateBlockPosition)
-    end
-end
-
-SpeedBtn.Text = speedEnabled and "Speed: ON" or "Speed: OFF"
-JumpBtn.Text = infJumpEnabled and "Inf Jump: ON" or "Inf Jump: OFF"
-AntiClipBtn.Text = antiClipEnabled and "Anti Clip: ON" or "Anti Clip: OFF"
-ESPBtn.Text = espEnabled and "ESP: ON" or "ESP: OFF"
-BlockBtn.Text = blockEnabled and "Block Under: ON" or "Block Under:
+    blockPart = Instance.new("Part")
+    blockPart.Name = "BlockUnderCharacter"
+    blockPart.Anchored = true
+    blockPart.CanCollide = true
+    blockPart.Size = Vector3.new(6, 0.5, 6)
+    blockPart.Transparency
+    
