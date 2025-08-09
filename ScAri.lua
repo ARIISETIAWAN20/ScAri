@@ -1,12 +1,10 @@
 -- Speed & Infinite Jump GUI Script for Roblox (Delta Executor Compatible)
 -- Default speed: 16, Max speed: 100000
--- Default JumpPower: 0 (Roblox default), Max JumpPower: 100
--- Features: Adjustable Speed & JumpPower, Toggle Speed, Toggle Infinite Jump, Minimize/Maximize, Close GUI, Persistent across respawn
+-- Features: Adjustable Speed & Inf Jump Power (saved in ARI HUB.json), Toggle Speed, Toggle Infinite Jump, Minimize/Maximize, Close GUI, Persistent across respawn
 
 local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
 local player = Players.LocalPlayer
-local UIS = game:GetService("UserInputService")
 
 -- File Handling
 local fileName = "ARI HUB.json"
@@ -14,7 +12,7 @@ local function loadSettings()
     if isfile(fileName) then
         return HttpService:JSONDecode(readfile(fileName))
     else
-        return {speed = 16, jumpPower = 0}
+        return {speed = 16, jumpPower = 50}
     end
 end
 
@@ -27,16 +25,16 @@ local settings = loadSettings()
 -- Variables
 local speedEnabled = false
 local infJumpEnabled = false
+local UIS = game:GetService("UserInputService")
 
 -- Infinite Jump Handler
 UIS.JumpRequest:Connect(function()
     if infJumpEnabled then
         local character = player.Character
-        local hum = character and character:FindFirstChildOfClass("Humanoid")
-        if hum then
-            hum.UseJumpPower = true
-            hum.JumpPower = tonumber(settings.jumpPower) or 0
-            hum:ChangeState("Jumping")
+        if character and character:FindFirstChildOfClass("Humanoid") then
+            character:FindFirstChildOfClass("Humanoid").UseJumpPower = true
+            character:FindFirstChildOfClass("Humanoid").JumpPower = tonumber(settings.jumpPower) or 50
+            character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
         end
     end
 end)
@@ -182,7 +180,7 @@ end)
 -- Save Jump Power Setting
 JumpBox.FocusLost:Connect(function()
     local val = tonumber(JumpBox.Text)
-    if val and val >= 0 and val <= 100 then
+    if val and val >= 50 and val <= 1000 then
         settings.jumpPower = val
         saveSettings(settings)
     else
