@@ -2,29 +2,60 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local HttpService = game:GetService("HttpService")
+
 local player = Players.LocalPlayer
 
-local fileName = "ARI HUB.json"
-
--- Load/Save Settings
-local function loadSettings()
-    if isfile(fileName) then
-        return HttpService:JSONDecode(readfile(fileName))
+-- Fungsi safe isfile dan writefile untuk Delta Executor
+local function safeIsFile(filename)
+    if type(isfile) == "function" then
+        return isfile(filename)
     else
-        return {
-            speed = 16,
-            jumpPower = 50,
-            speedEnabled = false,
-            infJumpEnabled = false,
-            antiClipEnabled = false,
-            espEnabled = false,
-            blockEnabled = false,
-        }
+        -- fallback selalu false (jika Delta tidak support)
+        return false
     end
 end
 
+local function safeReadFile(filename)
+    if type(readfile) == "function" and safeIsFile(filename) then
+        return readfile(filename)
+    else
+        return nil
+    end
+end
+
+local function safeWriteFile(filename, content)
+    if type(writefile) == "function" then
+        writefile(filename, content)
+    end
+end
+
+local fileName = "ARI HUB.json"
+
+local function loadSettings()
+    local data = safeReadFile(fileName)
+    if data then
+        local success, result = pcall(function()
+            return HttpService:JSONDecode(data)
+        end)
+        if success and type(result) == "table" then
+            return result
+        end
+    end
+    -- Default jika gagal load
+    return {
+        speed = 16,
+        jumpPower = 50,
+        speedEnabled = false,
+        infJumpEnabled = false,
+        antiClipEnabled = false,
+        espEnabled = false,
+        blockEnabled = false,
+    }
+end
+
 local function saveSettings(settings)
-    writefile(fileName, HttpService:JSONEncode(settings))
+    local json = HttpService:JSONEncode(settings)
+    safeWriteFile(fileName, json)
 end
 
 local settings = loadSettings()
@@ -35,11 +66,13 @@ local colorBlackGlossyLight = Color3.fromRGB(40, 40, 40)
 local colorRedFire = Color3.fromRGB(255, 20, 0)
 local colorWhite = Color3.fromRGB(255, 255, 255)
 
--- GUI Creation
+-- Pastikan PlayerGui sudah siap
+local playerGui = player:WaitForChild("PlayerGui")
+
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.ResetOnSpawn = false
 ScreenGui.IgnoreGuiInset = true
-ScreenGui.Parent = player:WaitForChild("PlayerGui")
+ScreenGui.Parent = playerGui
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, 250, 0, 350)
@@ -54,10 +87,13 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 local function addGlossyEffect(parent)
     local gradient = Instance.new("UIGradient")
     gradient.Rotation = 45
-    gradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0, 0.4), NumberSequenceKeypoint.new(0.5, 0.1), NumberSequenceKeypoint.new(1, 0.4)}
+    gradient.Transparency = NumberSequence.new{
+        NumberSequenceKeypoint.new(0, 0.4),
+        NumberSequenceKeypoint.new(0.5, 0.1),
+        NumberSequenceKeypoint.new(1, 0.4)
+    }
     gradient.Parent = parent
 end
-
 addGlossyEffect(MainFrame)
 
 local TitleBar = Instance.new("TextLabel")
@@ -152,12 +188,19 @@ CloseBtn.Parent = MainFrame
 Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 8)
 CloseBtn.ZIndex = 20
 
--- Variables
+-- Variabel status dari setting file
 local speedEnabled = settings.speedEnabled or false
 local infJumpEnabled = settings.infJumpEnabled or false
 local antiClipEnabled = settings.antiClipEnabled or false
 local espEnabled = settings.espEnabled or false
 local blockEnabled = settings.blockEnabled or false
+
+-- Update tombol sesuai status
+SpeedBtn.Text = speedEnabled and "Speed: ON" or "Speed: OFF"
+JumpBtn.Text = infJumpEnabled and "Inf Jump: ON" or "Inf Jump: OFF"
+AntiClipBtn.Text = antiClipEnabled and "Anti Clip: ON" or "Anti Clip: OFF"
+ESPBtn.Text = espEnabled and "ESP: ON" or "ESP: OFF"
+BlockBtn.Text = blockEnabled and "Block Under: ON" or "Block Under: OFF"
 
 -- Infinite Jump Handler
 UserInputService.JumpRequest:Connect(function()
@@ -178,7 +221,6 @@ end)
 local function setAntiClip(state)
     local character = player.Character
     if not character then return end
-
     for _, part in pairs(character:GetChildren()) do
         if part:IsA("BasePart") then
             part.CanCollide = not state
@@ -186,7 +228,7 @@ local function setAntiClip(state)
     end
 end
 
--- Speed Toggle
+-- Speed Toggle Button
 SpeedBtn.MouseButton1Click:Connect(function()
     local char = player.Character or player.CharacterAdded:Wait()
     local hum = char:FindFirstChildOfClass("Humanoid")
@@ -204,7 +246,7 @@ SpeedBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Save Speed Setting
+-- Speed TextBox Save
 SpeedBox.FocusLost:Connect(function()
     local val = tonumber(SpeedBox.Text)
     if val and val >= 16 and val <= 10000000 then
@@ -220,7 +262,7 @@ SpeedBox.FocusLost:Connect(function()
     end
 end)
 
--- Jump Toggle Logic
+-- Jump Toggle Button
 JumpBtn.MouseButton1Click:Connect(function()
     infJumpEnabled = not infJumpEnabled
     settings.infJumpEnabled = infJumpEnabled
@@ -228,7 +270,7 @@ JumpBtn.MouseButton1Click:Connect(function()
     JumpBtn.Text = infJumpEnabled and "Inf Jump: ON" or "Inf Jump: OFF"
 end)
 
--- Save Jump Power Setting
+-- Jump TextBox Save
 JumpBox.FocusLost:Connect(function()
     local val = tonumber(JumpBox.Text)
     if val and val >= 50 and val <= 1000 then
@@ -239,7 +281,7 @@ JumpBox.FocusLost:Connect(function()
     end
 end)
 
--- Anti Clip Toggle Logic
+-- Anti Clip Toggle Button
 AntiClipBtn.MouseButton1Click:Connect(function()
     antiClipEnabled = not antiClipEnabled
     settings.antiClipEnabled = antiClipEnabled
@@ -306,7 +348,6 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
--- ESP Toggle
 ESPBtn.MouseButton1Click:Connect(function()
     espEnabled = not espEnabled
     settings.espEnabled = espEnabled
@@ -333,7 +374,7 @@ Players.PlayerRemoving:Connect(function(plr)
     removeEspLabel(plr)
 end)
 
--- Block Under Character Implementation
+-- Block Under Character
 local blockPart = nil
 local function createBlockUnder()
     local char = player.Character
@@ -410,14 +451,5 @@ MinBtn.MouseButton1Click:Connect(function()
         obj.Visible = not minimized
     end
     MainFrame.Size = minimized and UDim2.new(0, 250, 0, 30) or UDim2.new(0, 250, 0, 350)
-    MinBtn.Text = minimized and "+" or "-"
-end)
-
-CloseBtn.MouseButton1Click:Connect(function()
-    ScreenGui:Destroy()
-end)
-
--- Restore on Respawn
-player.CharacterAdded:Connect(function(char)
-    local hum = char:WaitFor
-    
+    MinBtn.Text = minimized and "+"
+                        
