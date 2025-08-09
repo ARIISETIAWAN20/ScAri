@@ -1,6 +1,6 @@
 -- Speed & Infinite Jump GUI Script for Roblox (Delta Executor Compatible)
 -- Default speed: 16, Max speed: 100000
--- Features: Adjustable Speed (saved in ARI HUB.json), Toggle Speed, Toggle Infinite Jump, Minimize/Maximize, Close GUI, Persistent across respawn
+-- Features: Adjustable Speed & Inf Jump Power (saved in ARI HUB.json), Toggle Speed, Toggle Infinite Jump, Minimize/Maximize, Close GUI, Persistent across respawn
 
 local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
@@ -12,7 +12,7 @@ local function loadSettings()
     if isfile(fileName) then
         return HttpService:JSONDecode(readfile(fileName))
     else
-        return {speed = 16}
+        return {speed = 16, jumpPower = 50}
     end
 end
 
@@ -32,6 +32,8 @@ UIS.JumpRequest:Connect(function()
     if infJumpEnabled then
         local character = player.Character
         if character and character:FindFirstChildOfClass("Humanoid") then
+            character:FindFirstChildOfClass("Humanoid").UseJumpPower = true
+            character:FindFirstChildOfClass("Humanoid").JumpPower = tonumber(settings.jumpPower) or 50
             character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
         end
     end
@@ -44,8 +46,8 @@ ScreenGui.IgnoreGuiInset = true
 ScreenGui.Parent = player:WaitForChild("PlayerGui")
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 250, 0, 200)
-MainFrame.Position = UDim2.new(0.5, -125, 0.5, -100)
+MainFrame.Size = UDim2.new(0, 250, 0, 240)
+MainFrame.Position = UDim2.new(0.5, -125, 0.5, -120)
 MainFrame.BackgroundColor3 = Color3.fromRGB(80, 0, 120)
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
@@ -57,7 +59,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 local TitleBar = Instance.new("TextLabel")
 TitleBar.Size = UDim2.new(1, -60, 0, 30)
 TitleBar.BackgroundTransparency = 1
-TitleBar.Text = "ARI HUB"
+TitleBar.Text = "Speed & Jump Control"
 TitleBar.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleBar.TextScaled = true
 TitleBar.Font = Enum.Font.GothamBold
@@ -89,7 +91,7 @@ CloseBtn.Parent = MainFrame
 Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 8)
 CloseBtn.ZIndex = 2
 
--- Buttons
+-- Speed Button
 local SpeedBtn = Instance.new("TextButton")
 SpeedBtn.Size = UDim2.new(1, -20, 0, 40)
 SpeedBtn.Position = UDim2.new(0, 10, 0, 40)
@@ -100,8 +102,8 @@ SpeedBtn.TextScaled = true
 SpeedBtn.Font = Enum.Font.GothamBold
 SpeedBtn.Parent = MainFrame
 Instance.new("UICorner", SpeedBtn).CornerRadius = UDim.new(0, 8)
-SpeedBtn.ZIndex = 1
 
+-- Speed TextBox
 local SpeedBox = Instance.new("TextBox")
 SpeedBox.Size = UDim2.new(1, -20, 0, 30)
 SpeedBox.Position = UDim2.new(0, 10, 0, 85)
@@ -112,8 +114,8 @@ SpeedBox.TextScaled = true
 SpeedBox.Font = Enum.Font.GothamBold
 SpeedBox.Parent = MainFrame
 Instance.new("UICorner", SpeedBox).CornerRadius = UDim.new(0, 8)
-SpeedBox.ZIndex = 1
 
+-- Jump Button
 local JumpBtn = Instance.new("TextButton")
 JumpBtn.Size = UDim2.new(1, -20, 0, 40)
 JumpBtn.Position = UDim2.new(0, 10, 0, 125)
@@ -124,9 +126,20 @@ JumpBtn.TextScaled = true
 JumpBtn.Font = Enum.Font.GothamBold
 JumpBtn.Parent = MainFrame
 Instance.new("UICorner", JumpBtn).CornerRadius = UDim.new(0, 8)
-JumpBtn.ZIndex = 1
 
--- Speed Button Logic (click fix)
+-- Jump Power TextBox
+local JumpBox = Instance.new("TextBox")
+JumpBox.Size = UDim2.new(1, -20, 0, 30)
+JumpBox.Position = UDim2.new(0, 10, 0, 170)
+JumpBox.BackgroundColor3 = Color3.fromRGB(100, 0, 150)
+JumpBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+JumpBox.Text = tostring(settings.jumpPower)
+JumpBox.TextScaled = true
+JumpBox.Font = Enum.Font.GothamBold
+JumpBox.Parent = MainFrame
+Instance.new("UICorner", JumpBox).CornerRadius = UDim.new(0, 8)
+
+-- Speed Toggle Logic
 SpeedBtn.MouseButton1Click:Connect(function()
     local char = player.Character or player.CharacterAdded:Wait()
     local hum = char:FindFirstChildOfClass("Humanoid")
@@ -142,7 +155,7 @@ SpeedBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Speed Box Save
+-- Save Speed Setting
 SpeedBox.FocusLost:Connect(function()
     local val = tonumber(SpeedBox.Text)
     if val and val >= 16 and val <= 100000 then
@@ -158,22 +171,33 @@ SpeedBox.FocusLost:Connect(function()
     end
 end)
 
--- Jump Button Logic
+-- Jump Toggle Logic
 JumpBtn.MouseButton1Click:Connect(function()
     infJumpEnabled = not infJumpEnabled
     JumpBtn.Text = infJumpEnabled and "Inf Jump: ON" or "Inf Jump: OFF"
 end)
 
--- Minimize Logic (click fix)
+-- Save Jump Power Setting
+JumpBox.FocusLost:Connect(function()
+    local val = tonumber(JumpBox.Text)
+    if val and val >= 50 and val <= 1000 then
+        settings.jumpPower = val
+        saveSettings(settings)
+    else
+        JumpBox.Text = tostring(settings.jumpPower)
+    end
+end)
+
+-- Minimize Logic
 local minimized = false
-local elementsToToggle = {SpeedBtn, SpeedBox, JumpBtn}
+local elementsToToggle = {SpeedBtn, SpeedBox, JumpBtn, JumpBox}
 
 MinBtn.MouseButton1Click:Connect(function()
     minimized = not minimized
     for _, obj in ipairs(elementsToToggle) do
         obj.Visible = not minimized
     end
-    MainFrame.Size = minimized and UDim2.new(0, 250, 0, 30) or UDim2.new(0, 250, 0, 200)
+    MainFrame.Size = minimized and UDim2.new(0, 250, 0, 30) or UDim2.new(0, 250, 0, 240)
     MinBtn.Text = minimized and "+" or "-"
 end)
 
@@ -182,7 +206,7 @@ CloseBtn.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
 end)
 
--- Ensure humanoid reference updates on respawn
+-- Restore on Respawn
 player.CharacterAdded:Connect(function(char)
     local hum = char:WaitForChild("Humanoid")
     if speedEnabled then
