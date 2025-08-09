@@ -1,5 +1,3 @@
--- ARI HUB Full Version tanpa flicker fire, tanpa drag, posisi fixed di tengah atas layar
-
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -72,7 +70,6 @@ local settings = loadSettings()
 
 local cBlack = Color3.fromRGB(20, 20, 20)
 local cBlackLight = Color3.fromRGB(40, 40, 40)
-local cRed = Color3.fromRGB(255, 20, 0)
 local cWhite = Color3.fromRGB(255, 255, 255)
 
 local ScreenGui = Instance.new("ScreenGui")
@@ -81,21 +78,22 @@ ScreenGui.ResetOnSpawn = false
 ScreenGui.IgnoreGuiInset = true
 ScreenGui.Parent = playerGui
 
-local scale = 0.9
-local mainWidth = 250 * scale
-local mainHeight = 350 * scale
+local scale = 1
+local mainWidth = 260 * scale
+local mainHeight = 360 * scale
 local btnHeight = 40 * scale
 local tbHeight = 30 * scale
-local btnPadding = 10 * scale
-local verticalSpacing = 45 * scale
+local paddingLeft = 15 * scale
+local paddingTop = 45 * scale
+local gap = 12 * scale
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, mainWidth, 0, mainHeight)
-MainFrame.Position = UDim2.new(0.5, -mainWidth / 2, 0, 10) -- posisi fixed tengah atas dengan offset 10px dari atas
+MainFrame.Position = UDim2.new(0.5, -mainWidth / 2, 0, 10) -- Fixed top center
 MainFrame.BackgroundColor3 = cBlack
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
-MainFrame.Draggable = false -- Nonaktifkan drag
+MainFrame.Draggable = false
 MainFrame.Parent = ScreenGui
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
@@ -112,22 +110,32 @@ end
 
 addGlossyEffect(MainFrame)
 
+-- Rainbow effect untuk title "ARI HUB"
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, -60 * scale, 0, 30 * scale)
-Title.Position = UDim2.new(0, 10 * scale, 0, 0)
+Title.Size = UDim2.new(1, -90, 0, 35)
+Title.Position = UDim2.new(0, paddingLeft, 0, 5)
 Title.BackgroundTransparency = 1
 Title.Text = "ARI HUB"
-Title.TextColor3 = cRed
 Title.TextScaled = true
 Title.Font = Enum.Font.GothamBlack
 Title.Parent = MainFrame
 Title.ZIndex = 10
 
+-- Fungsi untuk rainbow color looping
+spawn(function()
+    local hue = 0
+    while Title.Parent do
+        hue = (hue + 0.005) % 1
+        Title.TextColor3 = Color3.fromHSV(hue, 1, 1)
+        wait(0.03)
+    end
+end)
+
 local FireFrame = Instance.new("Frame")
 FireFrame.Size = Title.Size
 FireFrame.Position = Title.Position
 FireFrame.BackgroundTransparency = 0.7
-FireFrame.BackgroundColor3 = cRed
+FireFrame.BackgroundColor3 = Color3.fromHSV(0, 0, 0.4) -- jadi lebih gelap, tanpa flicker
 FireFrame.BorderSizePixel = 0
 FireFrame.Parent = MainFrame
 FireFrame.ZIndex = 9
@@ -135,8 +143,8 @@ Instance.new("UICorner", FireFrame).CornerRadius = UDim.new(0, 5)
 
 local function createButton(text, idx)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -20 * scale, 0, btnHeight)
-    btn.Position = UDim2.new(0, 10 * scale, 0, btnPadding + verticalSpacing * (idx - 1))
+    btn.Size = UDim2.new(1, -paddingLeft * 2, 0, btnHeight)
+    btn.Position = UDim2.new(0, paddingLeft, 0, paddingTop + (btnHeight + gap) * (idx - 1))
     btn.BackgroundColor3 = cBlackLight
     btn.TextColor3 = cWhite
     btn.Text = text
@@ -148,16 +156,10 @@ local function createButton(text, idx)
     return btn
 end
 
-local SpeedBtn = createButton("Speed: OFF", 1)
-local JumpBtn = createButton("Inf Jump: OFF", 3)
-local AntiClipBtn = createButton("Anti Clip: OFF", 5)
-local ESPBtn = createButton("ESP: OFF", 6)
-local BlockBtn = createButton("Block Under: OFF", 7)
-
 local function createTextBox(text, idx)
     local tb = Instance.new("TextBox")
-    tb.Size = UDim2.new(1, -20 * scale, 0, tbHeight)
-    tb.Position = UDim2.new(0, 10 * scale, 0, btnPadding + verticalSpacing * (idx - 1))
+    tb.Size = UDim2.new(1, -paddingLeft * 2, 0, tbHeight)
+    tb.Position = UDim2.new(0, paddingLeft, 0, paddingTop + (btnHeight + gap) * (idx - 1))
     tb.BackgroundColor3 = cBlackLight
     tb.TextColor3 = cWhite
     tb.Text = text
@@ -169,12 +171,17 @@ local function createTextBox(text, idx)
     return tb
 end
 
+local SpeedBtn = createButton("Speed: OFF", 1)
 local SpeedBox = createTextBox(tostring(settings.speed), 2)
+local JumpBtn = createButton("Inf Jump: OFF", 3)
 local JumpBox = createTextBox(tostring(settings.jumpPower), 4)
+local AntiClipBtn = createButton("Anti Clip: OFF", 5)
+local ESPBtn = createButton("ESP: OFF", 6)
+local BlockBtn = createButton("Block Under: OFF", 7)
 
 local MinBtn = Instance.new("TextButton")
-MinBtn.Size = UDim2.new(0, 30 * scale, 0, 30 * scale)
-MinBtn.Position = UDim2.new(1, -60 * scale, 0, 0)
+MinBtn.Size = UDim2.new(0, 30, 0, 30)
+MinBtn.Position = UDim2.new(1, -90, 0, 5)
 MinBtn.Text = "-"
 MinBtn.TextScaled = true
 MinBtn.Font = Enum.Font.GothamBold
@@ -186,8 +193,8 @@ addGlossyEffect(MinBtn)
 MinBtn.ZIndex = 20
 
 local CloseBtn = Instance.new("TextButton")
-CloseBtn.Size = UDim2.new(0, 30 * scale, 0, 30 * scale)
-CloseBtn.Position = UDim2.new(1, -30 * scale, 0, 0)
+CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+CloseBtn.Position = UDim2.new(1, -50, 0, 5)
 CloseBtn.Text = "X"
 CloseBtn.TextScaled = true
 CloseBtn.Font = Enum.Font.GothamBold
@@ -197,14 +204,14 @@ CloseBtn.Parent = MainFrame
 Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 8)
 CloseBtn.ZIndex = 20
 
--- State vars
+-- States
 local speedEnabled = settings.speedEnabled or false
 local infJumpEnabled = settings.infJumpEnabled or false
 local antiClipEnabled = settings.antiClipEnabled or false
 local espEnabled = settings.espEnabled or false
 local blockEnabled = settings.blockEnabled or false
 
--- Infinite Jump
+-- Infinite Jump Handler
 UserInputService.JumpRequest:Connect(function()
     if infJumpEnabled then
         local char = player.Character
@@ -219,7 +226,7 @@ UserInputService.JumpRequest:Connect(function()
     end
 end)
 
--- Anti Clip
+-- Anti Clip function
 local function setAntiClip(state)
     local char = player.Character
     if not char then return end
@@ -230,7 +237,7 @@ local function setAntiClip(state)
     end
 end
 
--- Speed Toggle
+-- Speed toggle
 SpeedBtn.MouseButton1Click:Connect(function()
     speedEnabled = not speedEnabled
     settings.speedEnabled = speedEnabled
@@ -248,7 +255,6 @@ SpeedBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- SpeedBox Save
 SpeedBox.FocusLost:Connect(function()
     local val = tonumber(SpeedBox.Text)
     if val and val >= 16 and val <= 100000 then
@@ -264,7 +270,7 @@ SpeedBox.FocusLost:Connect(function()
     end
 end)
 
--- Jump Toggle
+-- Jump toggle
 JumpBtn.MouseButton1Click:Connect(function()
     infJumpEnabled = not infJumpEnabled
     settings.infJumpEnabled = infJumpEnabled
@@ -272,7 +278,6 @@ JumpBtn.MouseButton1Click:Connect(function()
     JumpBtn.Text = infJumpEnabled and "Inf Jump: ON" or "Inf Jump: OFF"
 end)
 
--- JumpBox Save
 JumpBox.FocusLost:Connect(function()
     local val = tonumber(JumpBox.Text)
     if val and val >= 50 and val <= 1000 then
@@ -283,7 +288,7 @@ JumpBox.FocusLost:Connect(function()
     end
 end)
 
--- AntiClip Toggle
+-- Anti Clip toggle
 AntiClipBtn.MouseButton1Click:Connect(function()
     antiClipEnabled = not antiClipEnabled
     settings.antiClipEnabled = antiClipEnabled
@@ -292,7 +297,7 @@ AntiClipBtn.MouseButton1Click:Connect(function()
     AntiClipBtn.Text = antiClipEnabled and "Anti Clip: ON" or "Anti Clip: OFF"
 end)
 
--- ESP
+-- ESP implementation
 local espLabels = {}
 
 local function createEspLabel(plr)
@@ -374,7 +379,8 @@ Players.PlayerRemoving:Connect(function(plr)
     removeEspLabel(plr)
 end)
 
--- Block Under Character (transparan block)
+-- Block under character, fixed so it does not go up automatically
+
 local blockPart
 
 local function createBlock()
@@ -398,6 +404,8 @@ local function updateBlockPosition()
     if not char then return end
     local root = char:FindFirstChild("HumanoidRootPart")
     if not root then return end
+    -- Fix posisi: blok tepat berada 3 stud di bawah karakter (Y = root.Position.Y - 3)
+    -- Jangan naik sendiri karena cuma mengikuti X,Z dan tetap Y posisi statis dari root.Y - 3
     blockPart.CFrame = CFrame.new(root.Position.X, root.Position.Y - 3, root.Position.Z)
 end
 
@@ -426,7 +434,8 @@ BlockBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Minimize and Close buttons logic
+-- Minimize and Close buttons
+
 local minimized = false
 local toggleObjects = {SpeedBtn, SpeedBox, JumpBtn, JumpBox, AntiClipBtn, ESPBtn, BlockBtn}
 
@@ -435,7 +444,7 @@ MinBtn.MouseButton1Click:Connect(function()
     for _, obj in ipairs(toggleObjects) do
         obj.Visible = not minimized
     end
-    MainFrame.Size = minimized and UDim2.new(0, mainWidth, 0, 30 * scale) or UDim2.new(0, mainWidth, 0, mainHeight)
+    MainFrame.Size = minimized and UDim2.new(0, mainWidth, 0, 35) or UDim2.new(0, mainWidth, 0, mainHeight)
     MinBtn.Text = minimized and "+" or "-"
 end)
 
@@ -480,4 +489,4 @@ SpeedBtn.Text = speedEnabled and "Speed: ON" or "Speed: OFF"
 JumpBtn.Text = infJumpEnabled and "Inf Jump: ON" or "Inf Jump: OFF"
 AntiClipBtn.Text = antiClipEnabled and "Anti Clip: ON" or "Anti Clip: OFF"
 ESPBtn.Text = espEnabled and "ESP: ON" or "ESP: OFF"
-BlockBtn.Text = blockEnabled and "Block Under: ON" or "Block Under: OFF"
+BlockBtn.Text = blockEnabled and "Block Under: ON" or "Block Under:
