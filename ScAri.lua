@@ -2,6 +2,7 @@
 local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
 -- File handling
@@ -26,8 +27,13 @@ local infJumpEnabled = false
 local antiClipEnabled = config.antiClip or false
 local blockUnderEnabled = config.blockUnder or false
 
+-- Anti AFK (passive)
+LocalPlayer.Idled:Connect(function()
+    game:GetService("VirtualUser"):CaptureController()
+    game:GetService("VirtualUser"):ClickButton2(Vector2.new())
+end)
+
 -- Infinite Jump
-local UserInputService = game:GetService("UserInputService")
 UserInputService.JumpRequest:Connect(function()
     if infJumpEnabled then
         local char = LocalPlayer.Character
@@ -49,13 +55,24 @@ ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, 250, 0, 300)
 MainFrame.Position = UDim2.new(0.5, -125, 0, 20)
-MainFrame.BackgroundColor3 = Color3.fromRGB(80, 0, 120)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 MainFrame.BorderSizePixel = 0
 MainFrame.Parent = ScreenGui
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
+-- Minimize/Maximize button
+local minimized = false
+local miniBtn = Instance.new("TextButton")
+miniBtn.Size = UDim2.new(0, 30, 0, 30)
+miniBtn.Position = UDim2.new(1, -35, 0, 5)
+miniBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+miniBtn.Text = "-"
+miniBtn.TextScaled = true
+miniBtn.Parent = MainFrame
+Instance.new("UICorner", miniBtn).CornerRadius = UDim.new(0, 8)
+
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, -20, 0, 30)
+Title.Size = UDim2.new(1, -50, 0, 30)
 Title.Position = UDim2.new(0, 10, 0, 5)
 Title.BackgroundTransparency = 1
 Title.Text = "ARI HUB"
@@ -64,7 +81,6 @@ Title.TextScaled = true
 Title.Font = Enum.Font.GothamBold
 Title.Parent = MainFrame
 
--- Rainbow effect for title
 spawn(function()
     while true do
         for hue = 0, 255, 4 do
@@ -74,12 +90,22 @@ spawn(function()
     end
 end)
 
--- Helper to create buttons
+miniBtn.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    for _, v in ipairs(MainFrame:GetChildren()) do
+        if v ~= miniBtn and v ~= Title then
+            v.Visible = not minimized
+        end
+    end
+    miniBtn.Text = minimized and "+" or "-"
+end)
+
+-- Helper button
 local function createButton(text, yPos)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(1, -20, 0, 30)
     btn.Position = UDim2.new(0, 10, 0, yPos)
-    btn.BackgroundColor3 = Color3.fromRGB(120, 0, 180)
+    btn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Text = text
     btn.TextScaled = true
@@ -93,7 +119,7 @@ local function createTextBox(defaultText, yPos)
     local tb = Instance.new("TextBox")
     tb.Size = UDim2.new(1, -20, 0, 30)
     tb.Position = UDim2.new(0, 10, 0, yPos)
-    tb.BackgroundColor3 = Color3.fromRGB(100, 0, 150)
+    tb.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     tb.TextColor3 = Color3.fromRGB(255, 255, 255)
     tb.Text = defaultText
     tb.TextScaled = true
@@ -103,13 +129,12 @@ local function createTextBox(defaultText, yPos)
     return tb
 end
 
--- Buttons & Inputs
+-- Buttons
 local speedBtn = createButton("Speed: OFF", 40)
 local speedBox = createTextBox(tostring(config.speed), 75)
 local jumpBtn = createButton("Inf Jump: OFF", 110)
-local jumpBox = createTextBox(tostring(config.jumpPower), 145)
-local antiClipBtn = createButton("Anti Clip: OFF", 180)
-local blockUnderBtn = createButton("Block Under: OFF", 215)
+local antiClipBtn = createButton("Anti Clip: OFF", 145)
+local blockUnderBtn = createButton("Block Under: OFF", 180)
 
 -- Speed toggle
 speedBtn.MouseButton1Click:Connect(function()
@@ -147,16 +172,6 @@ jumpBtn.MouseButton1Click:Connect(function()
     jumpBtn.Text = infJumpEnabled and "Inf Jump: ON" or "Inf Jump: OFF"
 end)
 
-jumpBox.FocusLost:Connect(function()
-    local val = tonumber(jumpBox.Text)
-    if val and val >= 50 and val <= 1000 then
-        config.jumpPower = val
-        saveConfig(config)
-    else
-        jumpBox.Text = tostring(config.jumpPower)
-    end
-end)
-
 -- Anti Clip toggle
 RunService.Stepped:Connect(function()
     if antiClipEnabled then
@@ -175,16 +190,10 @@ antiClipBtn.MouseButton1Click:Connect(function()
     antiClipBtn.Text = antiClipEnabled and "Anti Clip: ON" or "Anti Clip: OFF"
 end)
 
--- Block Under character
+-- Block Under character (static)
 local blockPart
 local function createBlockUnder()
-    local char = LocalPlayer.Character
-    if not char then return end
-    local hrp = char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
-
     if blockPart then blockPart:Destroy() end
-
     blockPart = Instance.new("Part")
     blockPart.Anchored = true
     blockPart.CanCollide = true
@@ -193,20 +202,8 @@ local function createBlockUnder()
     blockPart.Material = Enum.Material.Neon
     blockPart.Color = Color3.fromRGB(150, 0, 150)
     blockPart.Parent = workspace
+    blockPart.Position = Vector3.new(0, 3, 0) -- static position
 end
-
-RunService.Heartbeat:Connect(function()
-    if blockUnderEnabled and blockPart then
-        local char = LocalPlayer.Character
-        if char then
-            local hrp = char:FindFirstChild("HumanoidRootPart")
-            if hrp then
-                local pos = hrp.Position - Vector3.new(0, (hrp.Size.Y/2 + blockPart.Size.Y/2), 0)
-                blockPart.Position = Vector3.new(pos.X, pos.Y, pos.Z)
-            end
-        end
-    end
-end)
 
 blockUnderBtn.MouseButton1Click:Connect(function()
     blockUnderEnabled = not blockUnderEnabled
@@ -221,14 +218,37 @@ blockUnderBtn.MouseButton1Click:Connect(function()
     end
 end)
 
+-- ESP Username + Distance
+RunService.RenderStepped:Connect(function()
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") then
+            if not plr.Character.Head:FindFirstChild("ESPTag") then
+                local billboard = Instance.new("BillboardGui", plr.Character.Head)
+                billboard.Name = "ESPTag"
+                billboard.Size = UDim2.new(0, 200, 0, 50)
+                billboard.AlwaysOnTop = true
+                local text = Instance.new("TextLabel", billboard)
+                text.Size = UDim2.new(1, 0, 1, 0)
+                text.BackgroundTransparency = 1
+                text.TextColor3 = Color3.fromRGB(255, 255, 255)
+                text.Font = Enum.Font.GothamBold
+                text.TextScaled = true
+                billboard.Adornee = plr.Character.Head
+            end
+            local head = plr.Character.Head
+            local tag = head:FindFirstChild("ESPTag")
+            if tag and tag:FindFirstChildOfClass("TextLabel") then
+                local dist = (LocalPlayer.Character.HumanoidRootPart.Position - head.Position).Magnitude
+                tag.TextLabel.Text = string.format("%s | %.0f", plr.Name, dist)
+            end
+        end
+    end
+end)
+
 -- Character respawn handling
 LocalPlayer.CharacterAdded:Connect(function(char)
     local hum = char:WaitForChild("Humanoid")
-    if speedEnabled then
-        hum.WalkSpeed = tonumber(config.speed) or 16
-    else
-        hum.WalkSpeed = 16
-    end
+    hum.WalkSpeed = speedEnabled and (tonumber(config.speed) or 16) or 16
     if blockUnderEnabled then
         createBlockUnder()
     end
