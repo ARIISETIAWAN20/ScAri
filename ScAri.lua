@@ -56,7 +56,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 local TitleBar = Instance.new("TextLabel")
 TitleBar.Size = UDim2.new(1, -60, 0, 30)
 TitleBar.BackgroundTransparency = 1
-TitleBar.Text = "ARI HUB"
+TitleBar.Text = "Speed & Jump Control"
 TitleBar.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleBar.TextScaled = true
 TitleBar.Font = Enum.Font.GothamBold
@@ -120,44 +120,52 @@ JumpBtn.Font = Enum.Font.GothamBold
 JumpBtn.Parent = MainFrame
 Instance.new("UICorner", JumpBtn).CornerRadius = UDim.new(0, 8)
 
--- Button Logic
+-- Speed Button Logic (fixed humanoid update)
 SpeedBtn.MouseButton1Click:Connect(function()
+    local char = player.Character or player.CharacterAdded:Wait()
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if not hum then return end
+
     speedEnabled = not speedEnabled
     if speedEnabled then
-        humanoid.WalkSpeed = tonumber(settings.speed) or 16
+        hum.WalkSpeed = tonumber(settings.speed) or 16
         SpeedBtn.Text = "Speed: ON"
     else
-        humanoid.WalkSpeed = 16
+        hum.WalkSpeed = 16
         SpeedBtn.Text = "Speed: OFF"
     end
 end)
 
+-- Speed Box Save
 SpeedBox.FocusLost:Connect(function()
     local val = tonumber(SpeedBox.Text)
     if val and val >= 16 and val <= 100000 then
         settings.speed = val
         saveSettings(settings)
         if speedEnabled then
-            humanoid.WalkSpeed = val
+            local char = player.Character or player.CharacterAdded:Wait()
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            if hum then hum.WalkSpeed = val end
         end
     else
         SpeedBox.Text = tostring(settings.speed)
     end
 end)
 
+-- Jump Button Logic
 JumpBtn.MouseButton1Click:Connect(function()
     infJumpEnabled = not infJumpEnabled
     JumpBtn.Text = infJumpEnabled and "Inf Jump: ON" or "Inf Jump: OFF"
 end)
 
--- Minimize Logic
+-- Minimize Logic (fixed)
 local minimized = false
+local elementsToToggle = {SpeedBtn, SpeedBox, JumpBtn}
+
 MinBtn.MouseButton1Click:Connect(function()
     minimized = not minimized
-    for _, obj in ipairs(MainFrame:GetChildren()) do
-        if obj ~= TitleBar and obj ~= MinBtn and obj ~= CloseBtn then
-            obj.Visible = not minimized
-        end
+    for _, obj in ipairs(elementsToToggle) do
+        obj.Visible = not minimized
     end
     MainFrame.Size = minimized and UDim2.new(0, 250, 0, 30) or UDim2.new(0, 250, 0, 200)
     MinBtn.Text = minimized and "+" or "-"
@@ -170,10 +178,10 @@ end)
 
 -- Ensure humanoid reference updates on respawn
 player.CharacterAdded:Connect(function(char)
-    humanoid = char:WaitForChild("Humanoid")
+    local hum = char:WaitForChild("Humanoid")
     if speedEnabled then
-        humanoid.WalkSpeed = tonumber(settings.speed) or 16
+        hum.WalkSpeed = tonumber(settings.speed) or 16
     else
-        humanoid.WalkSpeed = 16
+        hum.WalkSpeed = 16
     end
 end)
