@@ -6,6 +6,7 @@ local HttpService = game:GetService("HttpService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
+-- Check if Delta Executor API exists
 local DeltaAPI = {}
 
 if type(getgenv) == "function" and type(getgenv().Delta) == "table" then
@@ -13,6 +14,7 @@ if type(getgenv) == "function" and type(getgenv().Delta) == "table" then
     DeltaAPI.readfile = getgenv().Delta.readfile
     DeltaAPI.writefile = getgenv().Delta.writefile
 else
+    -- fallback biasa, tapi kemungkinan tidak berfungsi di Delta
     DeltaAPI.isfile = isfile
     DeltaAPI.readfile = readfile
     DeltaAPI.writefile = writefile
@@ -50,6 +52,7 @@ local function loadSettings()
             return res
         end
     end
+    -- default settings
     return {
         speed = 16,
         jumpPower = 50,
@@ -74,8 +77,6 @@ local cBlackLight = Color3.fromRGB(40, 40, 40)
 local cRed = Color3.fromRGB(255, 20, 0)
 local cWhite = Color3.fromRGB(255, 255, 255)
 
-local guiScale = 0.9 -- 90% dari ukuran default
-
 -- GUI Creation
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "ARI_HUB_GUI"
@@ -83,9 +84,19 @@ ScreenGui.ResetOnSpawn = false
 ScreenGui.IgnoreGuiInset = true
 ScreenGui.Parent = playerGui
 
+local scale = 0.9 -- Scale 10% lebih kecil
+
+local mainWidth = 250 * scale
+local mainHeight = 350 * scale
+
+local btnHeight = 40 * scale
+local tbHeight = 30 * scale
+local btnPadding = 10 * scale
+local verticalSpacing = 45 * scale
+
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 250 * guiScale, 0, 350 * guiScale)
-MainFrame.Position = UDim2.new(0.5, -(125 * guiScale), 0.5, -(175 * guiScale))
+MainFrame.Size = UDim2.new(0, mainWidth, 0, mainHeight)
+MainFrame.Position = UDim2.new(0.5, -mainWidth / 2, 0.5, -mainHeight / 2)
 MainFrame.BackgroundColor3 = cBlack
 MainFrame.BorderSizePixel = 0
 MainFrame.Parent = ScreenGui
@@ -105,8 +116,8 @@ end
 addGlossyEffect(MainFrame)
 
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, -60 * guiScale, 0, 30 * guiScale)
-Title.Position = UDim2.new(0, 10 * guiScale, 0, 0)
+Title.Size = UDim2.new(1, -60 * scale, 0, 30 * scale)
+Title.Position = UDim2.new(0, 10 * scale, 0, 0)
 Title.BackgroundTransparency = 1
 Title.Text = "ARI HUB"
 Title.TextColor3 = cRed
@@ -134,64 +145,10 @@ coroutine.wrap(function()
     end
 end)()
 
--- Fungsi buat efek api merah mengelilingi MainFrame
-local function createFireParticle(posScale, size)
-    local fire = Instance.new("ImageLabel")
-    fire.Size = UDim2.new(0, size, 0, size)
-    fire.AnchorPoint = Vector2.new(0.5, 0.5)
-    fire.BackgroundTransparency = 1
-    fire.Image = "rbxassetid://241837157" -- id image api kecil (bisa diganti)
-    fire.ImageColor3 = Color3.fromRGB(255, 50, 0)
-    fire.Parent = MainFrame
-    fire.ZIndex = 15
-
-    -- Posisi relatif terhadap MainFrame
-    fire.Position = UDim2.new(posScale.X.Scale, posScale.X.Offset, posScale.Y.Scale, posScale.Y.Offset)
-
-    return fire
-end
-
-local fires = {}
-
--- Buat beberapa efek api di sekitar frame (posisi relatif)
-local firePositions = {
-    {X = UDim.new(0, 0), Y = UDim.new(0, 0)},
-    {X = UDim.new(1, 0), Y = UDim.new(0, 0)},
-    {X = UDim.new(1, 0), Y = UDim.new(1, 0)},
-    {X = UDim.new(0, 0), Y = UDim.new(1, 0)},
-    {X = UDim.new(0.5, 0), Y = UDim.new(0, -10)},
-    {X = UDim.new(1, 10), Y = UDim.new(0.5, 0)},
-    {X = UDim.new(0.5, 0), Y = UDim.new(1, 10)},
-    {X = UDim.new(-10, 0), Y = UDim.new(0.5, 0)},
-}
-
-for _, pos in ipairs(firePositions) do
-    local fire = createFireParticle({X = pos.X, Y = pos.Y}, 30 * guiScale)
-    table.insert(fires, fire)
-end
-
--- Animasi api bergerak mengelilingi frame secara sederhana
-local angle = 0
-RunService.Heartbeat:Connect(function(dt)
-    angle = angle + dt * math.rad(50) -- kecepatan rotasi
-
-    local cx = MainFrame.AbsoluteSize.X / 2
-    local cy = MainFrame.AbsoluteSize.Y / 2
-    local radiusX = cx + 10 * guiScale
-    local radiusY = cy + 10 * guiScale
-
-    for i, fire in ipairs(fires) do
-        local offsetAngle = angle + (2 * math.pi / #fires) * i
-        local x = cx + math.cos(offsetAngle) * radiusX
-        local y = cy + math.sin(offsetAngle) * radiusY
-        fire.Position = UDim2.new(0, x, 0, y)
-    end
-end)
-
-local function createButton(text, pos)
+local function createButton(text, idx)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -20 * guiScale, 0, 40 * guiScale)
-    btn.Position = pos
+    btn.Size = UDim2.new(1, -20 * scale, 0, btnHeight)
+    btn.Position = UDim2.new(0, 10 * scale, 0, btnPadding + verticalSpacing * (idx - 1))
     btn.BackgroundColor3 = cBlackLight
     btn.TextColor3 = cWhite
     btn.Text = text
@@ -203,16 +160,16 @@ local function createButton(text, pos)
     return btn
 end
 
-local SpeedBtn = createButton("Speed: OFF", UDim2.new(0, 10 * guiScale, 0, 40 * guiScale))
-local JumpBtn = createButton("Inf Jump: OFF", UDim2.new(0, 10 * guiScale, 0, 125 * guiScale))
-local AntiClipBtn = createButton("Anti Clip: OFF", UDim2.new(0, 10 * guiScale, 0, 210 * guiScale))
-local ESPBtn = createButton("ESP: OFF", UDim2.new(0, 10 * guiScale, 0, 260 * guiScale))
-local BlockBtn = createButton("Block Under: OFF", UDim2.new(0, 10 * guiScale, 0, 305 * guiScale))
+local SpeedBtn = createButton("Speed: OFF", 1)
+local JumpBtn = createButton("Inf Jump: OFF", 3)
+local AntiClipBtn = createButton("Anti Clip: OFF", 5)
+local ESPBtn = createButton("ESP: OFF", 6)
+local BlockBtn = createButton("Block Under: OFF", 7)
 
-local function createTextBox(text, pos)
+local function createTextBox(text, idx)
     local tb = Instance.new("TextBox")
-    tb.Size = UDim2.new(1, -20 * guiScale, 0, 30 * guiScale)
-    tb.Position = pos
+    tb.Size = UDim2.new(1, -20 * scale, 0, tbHeight)
+    tb.Position = UDim2.new(0, 10 * scale, 0, btnPadding + verticalSpacing * (idx - 1))
     tb.BackgroundColor3 = cBlackLight
     tb.TextColor3 = cWhite
     tb.Text = text
@@ -224,12 +181,12 @@ local function createTextBox(text, pos)
     return tb
 end
 
-local SpeedBox = createTextBox(tostring(settings.speed), UDim2.new(0, 10 * guiScale, 0, 85 * guiScale))
-local JumpBox = createTextBox(tostring(settings.jumpPower), UDim2.new(0, 10 * guiScale, 0, 170 * guiScale))
+local SpeedBox = createTextBox(tostring(settings.speed), 2)
+local JumpBox = createTextBox(tostring(settings.jumpPower), 4)
 
 local MinBtn = Instance.new("TextButton")
-MinBtn.Size = UDim2.new(0, 30 * guiScale, 0, 30 * guiScale)
-MinBtn.Position = UDim2.new(1, -60 * guiScale, 0, 0)
+MinBtn.Size = UDim2.new(0, 30 * scale, 0, 30 * scale)
+MinBtn.Position = UDim2.new(1, -60 * scale, 0, 0)
 MinBtn.Text = "-"
 MinBtn.TextScaled = true
 MinBtn.Font = Enum.Font.GothamBold
@@ -241,8 +198,8 @@ addGlossyEffect(MinBtn)
 MinBtn.ZIndex = 20
 
 local CloseBtn = Instance.new("TextButton")
-CloseBtn.Size = UDim2.new(0, 30 * guiScale, 0, 30 * guiScale)
-CloseBtn.Position = UDim2.new(1, -30 * guiScale, 0, 0)
+CloseBtn.Size = UDim2.new(0, 30 * scale, 0, 30 * scale)
+CloseBtn.Position = UDim2.new(1, -30 * scale, 0, 0)
 CloseBtn.Text = "X"
 CloseBtn.TextScaled = true
 CloseBtn.Font = Enum.Font.GothamBold
@@ -258,6 +215,13 @@ local infJumpEnabled = settings.infJumpEnabled
 local antiClipEnabled = settings.antiClipEnabled
 local espEnabled = settings.espEnabled
 local blockEnabled = settings.blockEnabled
+
+-- Update buttons text
+SpeedBtn.Text = speedEnabled and "Speed: ON" or "Speed: OFF"
+JumpBtn.Text = infJumpEnabled and "Inf Jump: ON" or "Inf Jump: OFF"
+AntiClipBtn.Text = antiClipEnabled and "Anti Clip: ON" or "Anti Clip: OFF"
+ESPBtn.Text = espEnabled and "ESP: ON" or "ESP: OFF"
+BlockBtn.Text = blockEnabled and "Block Under: ON" or "Block Under: OFF"
 
 -- Infinite Jump
 UserInputService.JumpRequest:Connect(function()
@@ -364,7 +328,7 @@ local function createEspLabel(plr)
     billboard.Name = "PlayerESP"
     billboard.Adornee = head
     billboard.AlwaysOnTop = true
-    billboard.Size = UDim2.new(0, 200 * guiScale, 0, 50 * guiScale)
+    billboard.Size = UDim2.new(0, 200, 0, 50)
     billboard.StudsOffset = Vector3.new(0, 2, 0)
     billboard.Parent = head
 
@@ -431,20 +395,108 @@ Players.PlayerRemoving:Connect(function(plr)
     removeEspLabel(plr)
 end)
 
--- Block Under Character (statik di spawn location)
+-- Block Under Character
 local blockPart = nil
-local spawnPosition = nil
 
 local function createBlockUnder()
     local char = player.Character
     if not char then return end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
 
-    if not spawnPosition then
-        local hrp = char:FindFirstChild("HumanoidRootPart")
-        if hrp then
-            spawnPosition = hrp.Position - Vector3.new(0, hrp.Size.Y/2 + 0.3, 0)
-        else
-            spawnPosition = Vector3.new(0, 0, 0)
+    if blockPart then
+        blockPart:Destroy()
+        blockPart = nil
+    end
+
+    blockPart = Instance.new("Part")
+    blockPart.Name = "BlockUnderCharacter"
+    blockPart.Anchored = true
+    blockPart.CanCollide = true
+    blockPart.Size = Vector3.new(5, 0.5, 5)
+    blockPart.Transparency = 0.5
+    blockPart.Material = Enum.Material.Neon
+    blockPart.Color = Color3.fromRGB(200, 0, 200)
+    blockPart.Parent = workspace
+
+    local offset = Vector3.new(0, -(hrp.Size.Y/2 + blockPart.Size.Y/2), 0)
+    blockPart.CFrame = hrp.CFrame * CFrame.new(offset)
+end
+
+local function updateBlock()
+    if not blockPart then return end
+    local char = player.Character
+    if not char then
+        blockPart:Destroy()
+        blockPart = nil
+        return
+    end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then
+        blockPart:Destroy()
+        blockPart = nil
+        return
+    end
+
+    local offset = Vector3.new(0, -(hrp.Size.Y/2 + blockPart.Size.Y/2), 0)
+    blockPart.CFrame = hrp.CFrame * CFrame.new(offset)
+end
+
+local function removeBlock()
+    if blockPart then
+        blockPart:Destroy()
+        blockPart = nil
+    end
+end
+
+local blockUpdateConnection = nil
+
+local function setBlockEnabled(state)
+    if state then
+        createBlockUnder()
+        if not blockUpdateConnection then
+            blockUpdateConnection = RunService.Heartbeat:Connect(updateBlock)
         end
+    else
+        if blockUpdateConnection then
+            blockUpdateConnection:Disconnect()
+            blockUpdateConnection = nil
+        end
+        removeBlock()
+    end
+end
 
-        
+BlockBtn.MouseButton1Click:Connect(function()
+    blockEnabled = not blockEnabled
+    settings.blockEnabled = blockEnabled
+    saveSettings(settings)
+    BlockBtn.Text = blockEnabled and "Block Under: ON" or "Block Under: OFF"
+    setBlockEnabled(blockEnabled)
+end)
+
+-- Minimize & Close Buttons
+local minimized = false
+local toggles = {SpeedBtn, SpeedBox, JumpBtn, JumpBox, AntiClipBtn, ESPBtn, BlockBtn}
+
+MinBtn.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    for _, v in pairs(toggles) do
+        v.Visible = not minimized
+    end
+    MainFrame.Size = minimized and UDim2.new(0, mainWidth, 0, 30 * scale) or UDim2.new(0, mainWidth, 0, mainHeight)
+    MinBtn.Text = minimized and "+" or "-"
+end)
+
+CloseBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+-- Start states
+if speedEnabled then
+    local char = player.Character or player.CharacterAdded:Wait()
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if hum then hum.WalkSpeed = tonumber(settings.speed) or 16 end
+end
+
+if antiClipEnabled then
+    
