@@ -25,43 +25,124 @@ local settings = loadSettings()
 local speedEnabled = false
 local infJumpEnabled = false
 local antiClipEnabled = false
+local espEnabled = false
 
--- GUI creation code (sama seperti sebelumnya, saya ringkas di sini)
+-- Colors
+local colorBlackGlossy = Color3.fromRGB(20, 20, 20)
+local colorBlackGlossyLight = Color3.fromRGB(40, 40, 40)
+local colorRedFire = Color3.fromRGB(255, 20, 0)
+local colorWhite = Color3.fromRGB(255, 255, 255)
+
+-- GUI Creation
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.ResetOnSpawn = false
 ScreenGui.IgnoreGuiInset = true
 ScreenGui.Parent = player:WaitForChild("PlayerGui")
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 250, 0, 320) -- tambah space buat ESP toggle
+MainFrame.Size = UDim2.new(0, 250, 0, 320)
 MainFrame.Position = UDim2.new(0.5, -125, 0.5, -160)
-MainFrame.BackgroundColor3 = Color3.fromRGB(80, 0, 120)
+MainFrame.BackgroundColor3 = colorBlackGlossy
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
 MainFrame.Draggable = true
 MainFrame.Parent = ScreenGui
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
+-- Glossy effect function (simple gradient overlay)
+local function addGlossyEffect(parent)
+    local gradient = Instance.new("UIGradient")
+    gradient.Rotation = 45
+    gradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0, 0.4), NumberSequenceKeypoint.new(0.5, 0.1), NumberSequenceKeypoint.new(1, 0.4)}
+    gradient.Parent = parent
+end
+
+addGlossyEffect(MainFrame)
+
+-- Title with fire effect
 local TitleBar = Instance.new("TextLabel")
 TitleBar.Size = UDim2.new(1, -60, 0, 30)
 TitleBar.BackgroundTransparency = 1
-TitleBar.Text = "Speed & Jump Control"
-TitleBar.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleBar.Text = "ARI HUB"
+TitleBar.TextColor3 = colorRedFire
 TitleBar.TextScaled = true
-TitleBar.Font = Enum.Font.GothamBold
+TitleBar.Font = Enum.Font.GothamBlack
 TitleBar.Parent = MainFrame
+TitleBar.ZIndex = 10
 
+-- Fire effect (simple flicker animation)
+local FireOverlay = Instance.new("Frame")
+FireOverlay.Size = TitleBar.Size
+FireOverlay.Position = TitleBar.Position
+FireOverlay.BackgroundTransparency = 0.8
+FireOverlay.BackgroundColor3 = colorRedFire
+FireOverlay.BorderSizePixel = 0
+FireOverlay.Parent = MainFrame
+FireOverlay.ZIndex = 9
+Instance.new("UICorner", FireOverlay).CornerRadius = UDim.new(0, 5)
+
+-- Animate flicker fire effect on FireOverlay background color and transparency
+spawn(function()
+    while FireOverlay.Parent do
+        FireOverlay.BackgroundTransparency = 0.6 + math.random() * 0.4
+        FireOverlay.BackgroundColor3 = Color3.fromHSV(0, 1, 0.7 + math.random() * 0.3)
+        wait(0.1 + math.random() * 0.2)
+    end
+end)
+
+-- Buttons creation helper function
+local function createButton(text, position)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, -20, 0, 40)
+    btn.Position = position
+    btn.BackgroundColor3 = colorBlackGlossyLight
+    btn.TextColor3 = colorWhite
+    btn.Text = text
+    btn.TextScaled = true
+    btn.Font = Enum.Font.GothamBold
+    btn.Parent = MainFrame
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+    addGlossyEffect(btn)
+    return btn
+end
+
+local SpeedBtn = createButton("Speed: OFF", UDim2.new(0, 10, 0, 40))
+local JumpBtn = createButton("Inf Jump: OFF", UDim2.new(0, 10, 0, 125))
+local AntiClipBtn = createButton("Anti Clip: OFF", UDim2.new(0, 10, 0, 210))
+local ESPBtn = createButton("ESP: OFF", UDim2.new(0, 10, 0, 260))
+
+-- TextBoxes creation helper
+local function createTextBox(text, position)
+    local tb = Instance.new("TextBox")
+    tb.Size = UDim2.new(1, -20, 0, 30)
+    tb.Position = position
+    tb.BackgroundColor3 = colorBlackGlossyLight
+    tb.TextColor3 = colorWhite
+    tb.Text = text
+    tb.TextScaled = true
+    tb.Font = Enum.Font.GothamBold
+    tb.Parent = MainFrame
+    Instance.new("UICorner", tb).CornerRadius = UDim.new(0, 8)
+    addGlossyEffect(tb)
+    return tb
+end
+
+local SpeedBox = createTextBox(tostring(settings.speed), UDim2.new(0, 10, 0, 85))
+local JumpBox = createTextBox(tostring(settings.jumpPower), UDim2.new(0, 10, 0, 170))
+
+-- Minimize and Close buttons
 local MinBtn = Instance.new("TextButton")
 MinBtn.Size = UDim2.new(0, 30, 0, 30)
 MinBtn.Position = UDim2.new(1, -60, 0, 0)
 MinBtn.Text = "-"
 MinBtn.TextScaled = true
 MinBtn.Font = Enum.Font.GothamBold
-MinBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 200)
-MinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinBtn.BackgroundColor3 = colorBlackGlossyLight
+MinBtn.TextColor3 = colorWhite
 MinBtn.Parent = MainFrame
 Instance.new("UICorner", MinBtn).CornerRadius = UDim.new(0, 8)
-MinBtn.ZIndex = 2
+addGlossyEffect(MinBtn)
+MinBtn.ZIndex = 20
 
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Size = UDim2.new(0, 30, 0, 30)
@@ -69,79 +150,16 @@ CloseBtn.Position = UDim2.new(1, -30, 0, 0)
 CloseBtn.Text = "X"
 CloseBtn.TextScaled = true
 CloseBtn.Font = Enum.Font.GothamBold
-CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
-CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+CloseBtn.TextColor3 = colorWhite
 CloseBtn.Parent = MainFrame
 Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 8)
-CloseBtn.ZIndex = 2
+CloseBtn.ZIndex = 20
 
-local SpeedBtn = Instance.new("TextButton")
-SpeedBtn.Size = UDim2.new(1, -20, 0, 40)
-SpeedBtn.Position = UDim2.new(0, 10, 0, 40)
-SpeedBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 180)
-SpeedBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-SpeedBtn.Text = "Speed: OFF"
-SpeedBtn.TextScaled = true
-SpeedBtn.Font = Enum.Font.GothamBold
-SpeedBtn.Parent = MainFrame
-Instance.new("UICorner", SpeedBtn).CornerRadius = UDim.new(0, 8)
-
-local SpeedBox = Instance.new("TextBox")
-SpeedBox.Size = UDim2.new(1, -20, 0, 30)
-SpeedBox.Position = UDim2.new(0, 10, 0, 85)
-SpeedBox.BackgroundColor3 = Color3.fromRGB(100, 0, 150)
-SpeedBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-SpeedBox.Text = tostring(settings.speed)
-SpeedBox.TextScaled = true
-SpeedBox.Font = Enum.Font.GothamBold
-SpeedBox.Parent = MainFrame
-Instance.new("UICorner", SpeedBox).CornerRadius = UDim.new(0, 8)
-
-local JumpBtn = Instance.new("TextButton")
-JumpBtn.Size = UDim2.new(1, -20, 0, 40)
-JumpBtn.Position = UDim2.new(0, 10, 0, 125)
-JumpBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 180)
-JumpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-JumpBtn.Text = "Inf Jump: OFF"
-JumpBtn.TextScaled = true
-JumpBtn.Font = Enum.Font.GothamBold
-JumpBtn.Parent = MainFrame
-Instance.new("UICorner", JumpBtn).CornerRadius = UDim.new(0, 8)
-
-local JumpBox = Instance.new("TextBox")
-JumpBox.Size = UDim2.new(1, -20, 0, 30)
-JumpBox.Position = UDim2.new(0, 10, 0, 170)
-JumpBox.BackgroundColor3 = Color3.fromRGB(100, 0, 150)
-JumpBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-JumpBox.Text = tostring(settings.jumpPower)
-JumpBox.TextScaled = true
-JumpBox.Font = Enum.Font.GothamBold
-JumpBox.Parent = MainFrame
-Instance.new("UICorner", JumpBox).CornerRadius = UDim.new(0, 8)
-
-local AntiClipBtn = Instance.new("TextButton")
-AntiClipBtn.Size = UDim2.new(1, -20, 0, 40)
-AntiClipBtn.Position = UDim2.new(0, 10, 0, 210)
-AntiClipBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 180)
-AntiClipBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-AntiClipBtn.Text = "Anti Clip: OFF"
-AntiClipBtn.TextScaled = true
-AntiClipBtn.Font = Enum.Font.GothamBold
-AntiClipBtn.Parent = MainFrame
-Instance.new("UICorner", AntiClipBtn).CornerRadius = UDim.new(0, 8)
-
-local ESPBtn = Instance.new("TextButton")
-ESPBtn.Size = UDim2.new(1, -20, 0, 40)
-ESPBtn.Position = UDim2.new(0, 10, 0, 260)
-ESPBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 180)
-ESPBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-ESPBtn.Text = "ESP: OFF"
-ESPBtn.TextScaled = true
-ESPBtn.Font = Enum.Font.GothamBold
-ESPBtn.Parent = MainFrame
-Instance.new("UICorner", ESPBtn).CornerRadius = UDim.new(0, 8)
-
--- States
+-- Variables
+local speedEnabled = false
+local infJumpEnabled = false
+local antiClipEnabled = false
 local espEnabled = false
 
 -- Infinite Jump Handler
@@ -159,34 +177,14 @@ UserInputService.JumpRequest:Connect(function()
     end
 end)
 
--- Anti Clip Implementation --
+-- Anti Clip Implementation (improved, only CanCollide false on all parts)
 local function setAntiClip(state)
     local character = player.Character
     if not character then return end
 
-    -- Loop all parts and set CanCollide
     for _, part in pairs(character:GetChildren()) do
-        if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+        if part:IsA("BasePart") then
             part.CanCollide = not state
-        end
-    end
-
-    -- HumanoidRootPart special handling
-    local hrp = character:FindFirstChild("HumanoidRootPart")
-    if hrp then
-        hrp.CanCollide = not state
-        if state then
-            -- To prevent stuck, add BodyVelocity to maintain movement and disable physics pushback
-            if not hrp:FindFirstChild("AntiClipVelocity") then
-                local bv = Instance.new("BodyVelocity")
-                bv.Name = "AntiClipVelocity"
-                bv.MaxForce = Vector3.new(1e5, 1e5, 1e5)
-                bv.Velocity = Vector3.new(0, 0, 0)
-                bv.Parent = hrp
-            end
-        else
-            local bv = hrp:FindFirstChild("AntiClipVelocity")
-            if bv then bv:Destroy() end
         end
     end
 end
@@ -247,7 +245,7 @@ AntiClipBtn.MouseButton1Click:Connect(function()
     setAntiClip(antiClipEnabled)
 end)
 
--- ESP Functions
+-- ESP Implementation
 local espLabels = {}
 
 local function createEspLabel(plr)
@@ -271,7 +269,7 @@ local function createEspLabel(plr)
     local textLabel = Instance.new("TextLabel")
     textLabel.Size = UDim2.new(1, 0, 1, 0)
     textLabel.BackgroundTransparency = 1
-    textLabel.TextColor3 = Color3.new(1, 1, 1)
+    textLabel.TextColor3 = colorWhite
     textLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
     textLabel.TextStrokeTransparency = 0
     textLabel.TextScaled = true
@@ -290,12 +288,12 @@ local function removeEspLabel(plr)
     end
 end
 
--- Update ESP every frame
+-- Update ESP labels every frame
 RunService.Heartbeat:Connect(function()
     if not espEnabled then return end
     for plr, label in pairs(espLabels) do
         local char = plr.Character
-        if char and char:FindFirstChild("HumanoidRootPart") then
+        if char and char:FindFirstChild("HumanoidRootPart") and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
             local hrp = char.HumanoidRootPart
             local distance = (hrp.Position - player.Character.HumanoidRootPart.Position).Magnitude
             label.Text = plr.Name .. "\n" .. string.format("%.1f", distance) .. " studs"
@@ -368,7 +366,7 @@ Players.LocalPlayer.Idled:Connect(function()
     VirtualUser:ClickButton2(Vector2.new())
 end)
 
--- Inisialisasi kalau player sudah ada karakter
+-- Initial apply anti clip if player already spawned
 if player.Character then
     setAntiClip(antiClipEnabled)
 end
