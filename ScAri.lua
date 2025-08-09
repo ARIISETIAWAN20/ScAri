@@ -2,37 +2,32 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local HttpService = game:GetService("HttpService")
-
 local player = Players.LocalPlayer
+
 local fileName = "ARI HUB.json"
 
--- Cek support file I/O
-local canReadFile = pcall(function() return isfile and isfile(fileName) end)
-local canWriteFile = pcall(function() return writefile end)
-
--- Load/Save Settings dengan fallback
+-- Load/Save Settings
 local function loadSettings()
-    if canReadFile and isfile(fileName) then
-        local suc, data = pcall(function() return HttpService:JSONDecode(readfile(fileName)) end)
-        if suc and type(data) == "table" then return data end
+    if isfile(fileName) then
+        return HttpService:JSONDecode(readfile(fileName))
+    else
+        return {
+            speed = 16,
+            jumpPower = 50,
+            speedEnabled = false,
+            infJumpEnabled = false,
+            antiClipEnabled = false,
+            espEnabled = false,
+            blockEnabled = false,
+        }
     end
-    return {speed = 16, jumpPower = 50}
 end
 
 local function saveSettings(settings)
-    if canWriteFile then
-        pcall(function() writefile(fileName, HttpService:JSONEncode(settings)) end)
-    end
+    writefile(fileName, HttpService:JSONEncode(settings))
 end
 
 local settings = loadSettings()
-
--- Variables
-local speedEnabled = false
-local infJumpEnabled = false
-local antiClipEnabled = false
-local espEnabled = false
-local blockWallEnabled = false
 
 -- Colors
 local colorBlackGlossy = Color3.fromRGB(20, 20, 20)
@@ -47,8 +42,8 @@ ScreenGui.IgnoreGuiInset = true
 ScreenGui.Parent = player:WaitForChild("PlayerGui")
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 250, 0, 360)
-MainFrame.Position = UDim2.new(0.5, -125, 0.5, -180)
+MainFrame.Size = UDim2.new(0, 250, 0, 350)
+MainFrame.Position = UDim2.new(0.5, -125, 0.5, -175)
 MainFrame.BackgroundColor3 = colorBlackGlossy
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
@@ -59,11 +54,7 @@ Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 local function addGlossyEffect(parent)
     local gradient = Instance.new("UIGradient")
     gradient.Rotation = 45
-    gradient.Transparency = NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 0.4),
-        NumberSequenceKeypoint.new(0.5, 0.1),
-        NumberSequenceKeypoint.new(1, 0.4)
-    }
+    gradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0, 0.4), NumberSequenceKeypoint.new(0.5, 0.1), NumberSequenceKeypoint.new(1, 0.4)}
     gradient.Parent = parent
 end
 
@@ -89,12 +80,11 @@ FireOverlay.Parent = MainFrame
 FireOverlay.ZIndex = 9
 Instance.new("UICorner", FireOverlay).CornerRadius = UDim.new(0, 5)
 
--- Ganti spawn ke task.spawn untuk flicker
-task.spawn(function()
+spawn(function()
     while FireOverlay.Parent do
         FireOverlay.BackgroundTransparency = 0.6 + math.random() * 0.4
         FireOverlay.BackgroundColor3 = Color3.fromHSV(0, 1, 0.7 + math.random() * 0.3)
-        task.wait(0.1 + math.random() * 0.2)
+        wait(0.1 + math.random() * 0.2)
     end
 end)
 
@@ -117,38 +107,64 @@ local SpeedBtn = createButton("Speed: OFF", UDim2.new(0, 10, 0, 40))
 local JumpBtn = createButton("Inf Jump: OFF", UDim2.new(0, 10, 0, 125))
 local AntiClipBtn = createButton("Anti Clip: OFF", UDim2.new(0, 10, 0, 210))
 local ESPBtn = createButton("ESP: OFF", UDim2.new(0, 10, 0, 260))
-local BlockWallBtn = createButton("Block Wall: OFF", UDim2.new(0, 10, 0, 310))
+local BlockBtn = createButton("Block Under: OFF", UDim2.new(0, 10, 0, 305))
 
-local SpeedBox = Instance.new("TextBox")
-SpeedBox.Size = UDim2.new(1, -20, 0, 30)
-SpeedBox.Position = UDim2.new(0, 10, 0, 85)
-SpeedBox.BackgroundColor3 = colorBlackGlossyLight
-SpeedBox.TextColor3 = colorWhite
-SpeedBox.Text = tostring(settings.speed)
-SpeedBox.TextScaled = true
-SpeedBox.Font = Enum.Font.GothamBold
-SpeedBox.Parent = MainFrame
-Instance.new("UICorner", SpeedBox).CornerRadius = UDim.new(0, 8)
-addGlossyEffect(SpeedBox)
+local function createTextBox(text, position)
+    local tb = Instance.new("TextBox")
+    tb.Size = UDim2.new(1, -20, 0, 30)
+    tb.Position = position
+    tb.BackgroundColor3 = colorBlackGlossyLight
+    tb.TextColor3 = colorWhite
+    tb.Text = text
+    tb.TextScaled = true
+    tb.Font = Enum.Font.GothamBold
+    tb.Parent = MainFrame
+    Instance.new("UICorner", tb).CornerRadius = UDim.new(0, 8)
+    addGlossyEffect(tb)
+    return tb
+end
 
-local JumpBox = Instance.new("TextBox")
-JumpBox.Size = UDim2.new(1, -20, 0, 30)
-JumpBox.Position = UDim2.new(0, 10, 0, 170)
-JumpBox.BackgroundColor3 = colorBlackGlossyLight
-JumpBox.TextColor3 = colorWhite
-JumpBox.Text = tostring(settings.jumpPower)
-JumpBox.TextScaled = true
-JumpBox.Font = Enum.Font.GothamBold
-JumpBox.Parent = MainFrame
-Instance.new("UICorner", JumpBox).CornerRadius = UDim.new(0, 8)
-addGlossyEffect(JumpBox)
+local SpeedBox = createTextBox(tostring(settings.speed), UDim2.new(0, 10, 0, 85))
+local JumpBox = createTextBox(tostring(settings.jumpPower), UDim2.new(0, 10, 0, 170))
 
--- Infinite Jump
+local MinBtn = Instance.new("TextButton")
+MinBtn.Size = UDim2.new(0, 30, 0, 30)
+MinBtn.Position = UDim2.new(1, -60, 0, 0)
+MinBtn.Text = "-"
+MinBtn.TextScaled = true
+MinBtn.Font = Enum.Font.GothamBold
+MinBtn.BackgroundColor3 = colorBlackGlossyLight
+MinBtn.TextColor3 = colorWhite
+MinBtn.Parent = MainFrame
+Instance.new("UICorner", MinBtn).CornerRadius = UDim.new(0, 8)
+addGlossyEffect(MinBtn)
+MinBtn.ZIndex = 20
+
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+CloseBtn.Position = UDim2.new(1, -30, 0, 0)
+CloseBtn.Text = "X"
+CloseBtn.TextScaled = true
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+CloseBtn.TextColor3 = colorWhite
+CloseBtn.Parent = MainFrame
+Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 8)
+CloseBtn.ZIndex = 20
+
+-- Variables
+local speedEnabled = settings.speedEnabled or false
+local infJumpEnabled = settings.infJumpEnabled or false
+local antiClipEnabled = settings.antiClipEnabled or false
+local espEnabled = settings.espEnabled or false
+local blockEnabled = settings.blockEnabled or false
+
+-- Infinite Jump Handler
 UserInputService.JumpRequest:Connect(function()
     if infJumpEnabled then
-        local char = player.Character
-        if char then
-            local hum = char:FindFirstChildOfClass("Humanoid")
+        local character = player.Character
+        if character then
+            local hum = character:FindFirstChildOfClass("Humanoid")
             if hum then
                 hum.UseJumpPower = true
                 hum.JumpPower = tonumber(settings.jumpPower) or 50
@@ -158,22 +174,27 @@ UserInputService.JumpRequest:Connect(function()
     end
 end)
 
+-- Anti Clip Implementation
 local function setAntiClip(state)
-    local char = player.Character
-    if not char then return end
+    local character = player.Character
+    if not character then return end
 
-    for _, part in pairs(char:GetChildren()) do
+    for _, part in pairs(character:GetChildren()) do
         if part:IsA("BasePart") then
             part.CanCollide = not state
         end
     end
 end
 
+-- Speed Toggle
 SpeedBtn.MouseButton1Click:Connect(function()
     local char = player.Character or player.CharacterAdded:Wait()
     local hum = char:FindFirstChildOfClass("Humanoid")
     if not hum then return end
+
     speedEnabled = not speedEnabled
+    settings.speedEnabled = speedEnabled
+    saveSettings(settings)
     if speedEnabled then
         hum.WalkSpeed = tonumber(settings.speed) or 16
         SpeedBtn.Text = "Speed: ON"
@@ -183,9 +204,10 @@ SpeedBtn.MouseButton1Click:Connect(function()
     end
 end)
 
+-- Save Speed Setting
 SpeedBox.FocusLost:Connect(function()
     local val = tonumber(SpeedBox.Text)
-    if val and val >= 16 and val <= 100000 then
+    if val and val >= 16 and val <= 10000000 then
         settings.speed = val
         saveSettings(settings)
         if speedEnabled then
@@ -198,11 +220,15 @@ SpeedBox.FocusLost:Connect(function()
     end
 end)
 
+-- Jump Toggle Logic
 JumpBtn.MouseButton1Click:Connect(function()
     infJumpEnabled = not infJumpEnabled
+    settings.infJumpEnabled = infJumpEnabled
+    saveSettings(settings)
     JumpBtn.Text = infJumpEnabled and "Inf Jump: ON" or "Inf Jump: OFF"
 end)
 
+-- Save Jump Power Setting
 JumpBox.FocusLost:Connect(function()
     local val = tonumber(JumpBox.Text)
     if val and val >= 50 and val <= 1000 then
@@ -213,20 +239,26 @@ JumpBox.FocusLost:Connect(function()
     end
 end)
 
+-- Anti Clip Toggle Logic
 AntiClipBtn.MouseButton1Click:Connect(function()
     antiClipEnabled = not antiClipEnabled
+    settings.antiClipEnabled = antiClipEnabled
+    saveSettings(settings)
     AntiClipBtn.Text = antiClipEnabled and "Anti Clip: ON" or "Anti Clip: OFF"
     setAntiClip(antiClipEnabled)
 end)
 
+-- ESP Implementation
 local espLabels = {}
 
 local function createEspLabel(plr)
     if plr == player then return end
     if espLabels[plr] then return end
-    local char = plr.Character
-    if not char then return end
-    local head = char:FindFirstChild("Head")
+
+    local character = plr.Character
+    if not character then return end
+
+    local head = character:FindFirstChild("Head")
     if not head then return end
 
     local billboard = Instance.new("BillboardGui")
@@ -274,8 +306,11 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
+-- ESP Toggle
 ESPBtn.MouseButton1Click:Connect(function()
     espEnabled = not espEnabled
+    settings.espEnabled = espEnabled
+    saveSettings(settings)
     ESPBtn.Text = espEnabled and "ESP: ON" or "ESP: OFF"
     if espEnabled then
         for _, plr in pairs(Players:GetPlayers()) do
@@ -298,126 +333,91 @@ Players.PlayerRemoving:Connect(function(plr)
     removeEspLabel(plr)
 end)
 
--- Block Wall (small transparent part below character)
+-- Block Under Character Implementation
 local blockPart = nil
-
-local function createBlockWall()
-    if blockPart then return end
+local function createBlockUnder()
     local char = player.Character
     if not char then return end
     local hrp = char:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
 
+    if blockPart then
+        blockPart:Destroy()
+        blockPart = nil
+    end
+
     blockPart = Instance.new("Part")
-    blockPart.Size = Vector3.new(4, 0.2, 4)
-    blockPart.Transparency = 0.7
-    blockPart.CanCollide = true
+    blockPart.Name = "BlockUnderCharacter"
     blockPart.Anchored = true
+    blockPart.CanCollide = true
+    blockPart.Size = Vector3.new(5, 0.5, 5)
+    blockPart.Transparency = 0.5
     blockPart.Material = Enum.Material.Neon
-    blockPart.Color = Color3.fromRGB(255, 255, 255)
-    blockPart.Name = "BlockWall"
+    blockPart.Color = Color3.fromRGB(200, 0, 200)
+    blockPart.Position = hrp.Position - Vector3.new(0, hrp.Size.Y/2 + 0.3, 0)
     blockPart.Parent = workspace
-    blockPart.CFrame = hrp.CFrame * CFrame.new(0, -3, 0)
 end
 
-local function removeBlockWall()
+local function updateBlockUnder()
+    if not blockPart then return end
+    local char = player.Character
+    if not char then
+        blockPart:Destroy()
+        blockPart = nil
+        return
+    end
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hrp then
+        blockPart:Destroy()
+        blockPart = nil
+        return
+    end
+    blockPart.Position = hrp.Position - Vector3.new(0, hrp.Size.Y/2 + 0.3, 0)
+end
+
+local function removeBlock()
     if blockPart then
         blockPart:Destroy()
         blockPart = nil
     end
 end
 
-RunService.Heartbeat:Connect(function()
-    if blockWallEnabled and blockPart then
-        local char = player.Character
-        if char then
-            local hrp = char:FindFirstChild("HumanoidRootPart")
-            if hrp then
-                blockPart.CFrame = hrp.CFrame * CFrame.new(0, -3, 0)
-            else
-                removeBlockWall()
-            end
-        else
-            removeBlockWall()
-        end
-    end
-end)
-
-BlockWallBtn.MouseButton1Click:Connect(function()
-    blockWallEnabled = not blockWallEnabled
-    BlockWallBtn.Text = blockWallEnabled and "Block Wall: ON" or "Block Wall: OFF"
-    if blockWallEnabled then
-        createBlockWall()
+local function enableBlock(state)
+    if state then
+        createBlockUnder()
+        RunService:BindToRenderStep("UpdateBlock", 1, updateBlockUnder)
     else
-        removeBlockWall()
+        RunService:UnbindFromRenderStep("UpdateBlock")
+        removeBlock()
     end
+end
+
+BlockBtn.MouseButton1Click:Connect(function()
+    blockEnabled = not blockEnabled
+    settings.blockEnabled = blockEnabled
+    saveSettings(settings)
+    BlockBtn.Text = blockEnabled and "Block Under: ON" or "Block Under: OFF"
+    enableBlock(blockEnabled)
 end)
 
--- Minimize & Close buttons
-local MinBtn = Instance.new("TextButton")
-MinBtn.Size = UDim2.new(0, 30, 0, 30)
-MinBtn.Position = UDim2.new(1, -60, 0, 0)
-MinBtn.Text = "-"
-MinBtn.TextScaled = true
-MinBtn.Font = Enum.Font.GothamBold
-MinBtn.BackgroundColor3 = colorBlackGlossyLight
-MinBtn.TextColor3 = colorWhite
-MinBtn.Parent = MainFrame
-Instance.new("UICorner", MinBtn).CornerRadius = UDim.new(0, 8)
-addGlossyEffect(MinBtn)
-MinBtn.ZIndex = 20
-
-local CloseBtn = Instance.new("TextButton")
-CloseBtn.Size = UDim2.new(0, 30, 0, 30)
-CloseBtn.Position = UDim2.new(1, -30, 0, 0)
-CloseBtn.Text = "X"
-CloseBtn.TextScaled = true
-CloseBtn.Font = Enum.Font.GothamBold
-CloseBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
-CloseBtn.TextColor3 = colorWhite
-CloseBtn.Parent = MainFrame
-Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 8)
-CloseBtn.ZIndex = 20
+-- Minimize and Close buttons
+local minimized = false
+local elementsToToggle = {SpeedBtn, SpeedBox, JumpBtn, JumpBox, AntiClipBtn, ESPBtn, BlockBtn}
 
 MinBtn.MouseButton1Click:Connect(function()
-    local minimized = MainFrame.Size.Y.Offset == 30
-    for _, obj in ipairs({SpeedBtn, SpeedBox, JumpBtn, JumpBox, AntiClipBtn, ESPBtn, BlockWallBtn}) do
-        obj.Visible = minimized
+    minimized = not minimized
+    for _, obj in ipairs(elementsToToggle) do
+        obj.Visible = not minimized
     end
-    MainFrame.Size = minimized and UDim2.new(0, 250, 0, 360) or UDim2.new(0, 250, 0, 30)
-    MinBtn.Text = minimized and "-" or "+"
+    MainFrame.Size = minimized and UDim2.new(0, 250, 0, 30) or UDim2.new(0, 250, 0, 350)
+    MinBtn.Text = minimized and "+" or "-"
 end)
 
 CloseBtn.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
 end)
 
-local function onCharacterAdded(char)
-    local hum = char:WaitForChild("Humanoid")
-    if speedEnabled then
-        hum.WalkSpeed = tonumber(settings.speed) or 16
-    else
-        hum.WalkSpeed = 16
-    end
-    setAntiClip(antiClipEnabled)
-
-    if blockWallEnabled then
-        createBlockWall()
-    end
-end
-
-player.CharacterAdded:Connect(onCharacterAdded)
-
-if player.Character then
-    onCharacterAdded(player.Character)
-end
-
--- Anti AFK (simple)
-local VirtualUser = game:GetService("VirtualUser")
-Players.LocalPlayer.Idled:Connect(function()
-    VirtualUser:CaptureController()
-    VirtualUser:ClickButton2(Vector2.new())
-end)
-
--- Debug info
-print("[ARI HUB] Script loaded and running on Delta Executor")
+-- Restore on Respawn
+player.CharacterAdded:Connect(function(char)
+    local hum = char:WaitFor
+    
