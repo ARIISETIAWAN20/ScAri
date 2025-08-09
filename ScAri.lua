@@ -1,12 +1,10 @@
 -- Speed & Infinite Jump GUI Script for Roblox (Delta Executor Compatible)
 -- Default speed: 16, Max speed: 100000
--- Features: Adjustable Speed (saved in ARI HUB.json), Toggle Speed, Toggle Infinite Jump, Minimize GUI
+-- Features: Adjustable Speed (saved in ARI HUB.json), Toggle Speed, Toggle Infinite Jump, Minimize/Maximize, Close GUI, Persistent across respawn
 
 local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
 local player = Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local humanoid = character:WaitForChild("Humanoid")
 
 -- File Handling
 local fileName = "ARI HUB.json"
@@ -32,12 +30,16 @@ local UIS = game:GetService("UserInputService")
 -- Infinite Jump Handler
 UIS.JumpRequest:Connect(function()
     if infJumpEnabled then
-        humanoid:ChangeState("Jumping")
+        local character = player.Character
+        if character and character:FindFirstChildOfClass("Humanoid") then
+            character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+        end
     end
 end)
 
--- Create GUI
+-- Create GUI (Persistent)
 local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = player:WaitForChild("PlayerGui")
 
 local MainFrame = Instance.new("Frame")
@@ -48,14 +50,13 @@ MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
 MainFrame.Draggable = true
 MainFrame.Parent = ScreenGui
-
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
 -- Title Bar
 local TitleBar = Instance.new("TextLabel")
-TitleBar.Size = UDim2.new(1, -30, 0, 30)
+TitleBar.Size = UDim2.new(1, -60, 0, 30)
 TitleBar.BackgroundTransparency = 1
-TitleBar.Text = "Speed & Jump Control"
+TitleBar.Text = "ARI HUB"
 TitleBar.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleBar.TextScaled = true
 TitleBar.Font = Enum.Font.GothamBold
@@ -64,7 +65,7 @@ TitleBar.Parent = MainFrame
 -- Minimize Button
 local MinBtn = Instance.new("TextButton")
 MinBtn.Size = UDim2.new(0, 30, 0, 30)
-MinBtn.Position = UDim2.new(1, -30, 0, 0)
+MinBtn.Position = UDim2.new(1, -60, 0, 0)
 MinBtn.Text = "-"
 MinBtn.TextScaled = true
 MinBtn.Font = Enum.Font.GothamBold
@@ -72,6 +73,18 @@ MinBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 200)
 MinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 MinBtn.Parent = MainFrame
 Instance.new("UICorner", MinBtn).CornerRadius = UDim.new(0, 8)
+
+-- Close Button
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+CloseBtn.Position = UDim2.new(1, -30, 0, 0)
+CloseBtn.Text = "X"
+CloseBtn.TextScaled = true
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.Parent = MainFrame
+Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 8)
 
 -- Buttons
 local SpeedBtn = Instance.new("TextButton")
@@ -119,7 +132,7 @@ SpeedBtn.MouseButton1Click:Connect(function()
     end
 end)
 
-SpeedBox.FocusLost:Connect(function(enterPressed)
+SpeedBox.FocusLost:Connect(function()
     local val = tonumber(SpeedBox.Text)
     if val and val >= 16 and val <= 100000 then
         settings.speed = val
@@ -142,12 +155,25 @@ local minimized = false
 MinBtn.MouseButton1Click:Connect(function()
     minimized = not minimized
     for _, obj in ipairs(MainFrame:GetChildren()) do
-        if obj ~= TitleBar and obj ~= MinBtn and not minimized then
-            obj.Visible = true
-        elseif obj ~= TitleBar and obj ~= MinBtn and minimized then
-            obj.Visible = false
+        if obj ~= TitleBar and obj ~= MinBtn and obj ~= CloseBtn then
+            obj.Visible = not minimized
         end
     end
     MainFrame.Size = minimized and UDim2.new(0, 250, 0, 30) or UDim2.new(0, 250, 0, 200)
     MinBtn.Text = minimized and "+" or "-"
+end)
+
+-- Close Logic
+CloseBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+-- Ensure humanoid reference updates on respawn
+player.CharacterAdded:Connect(function(char)
+    humanoid = char:WaitForChild("Humanoid")
+    if speedEnabled then
+        humanoid.WalkSpeed = tonumber(settings.speed) or 16
+    else
+        humanoid.WalkSpeed = 16
+    end
 end)
