@@ -1,234 +1,125 @@
--- Versi lengkap GUI Speed & Infinite Jump dengan efek aurora + tombol minimize yang tetap terlihat
+-- Speed & Infinite Jump GUI Script for Roblox (Delta Executor Compatible)
+-- Default speed: 16, Max speed: 100000
+-- Features: Toggle Speed, Toggle Infinite Jump, Minimize GUI
 
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
+
+-- Variables
+local speedEnabled = false
+local infJumpEnabled = false
+local defaultSpeed = 16
+local maxSpeed = 100000
 local UIS = game:GetService("UserInputService")
-local HttpService = game:GetService("HttpService")
 
-local fileName = "ScAri.json"
-local speed = 16
-local speedOn = false
-local infJumpOn = false
-
-local function saveData()
-    writefile(fileName, HttpService:JSONEncode({speed = speed, speedOn = speedOn, infJumpOn = infJumpOn}))
-end
-
-local function loadData()
-    if isfile(fileName) then
-        local data = HttpService:JSONDecode(readfile(fileName))
-        speed = data.speed or 16
-        speedOn = data.speedOn or false
-        infJumpOn = data.infJumpOn or false
-    end
-end
-
-loadData()
-
-local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
-local mainFrame = Instance.new("Frame", ScreenGui)
-mainFrame.Size = UDim2.new(0, 200, 0, 150)
-mainFrame.Position = UDim2.new(0.5, -100, 0.5, -75)
-mainFrame.Active = true
-mainFrame.Draggable = true
-
-local minimizeButton = Instance.new("TextButton", mainFrame)
-minimizeButton.Size = UDim2.new(0, 25, 0, 25)
-minimizeButton.Position = UDim2.new(1, -30, 0, 5)
-minimizeButton.Text = "-"
-
-local speedBox = Instance.new("TextBox", mainFrame)
-speedBox.Size = UDim2.new(1, -20, 0, 30)
-speedBox.Position = UDim2.new(0, 10, 0, 40)
-speedBox.PlaceholderText = "Speed"
-speedBox.Text = tostring(speed)
-
-local speedToggle = Instance.new("TextButton", mainFrame)
-speedToggle.Size = UDim2.new(1, -20, 0, 30)
-speedToggle.Position = UDim2.new(0, 10, 0, 80)
-speedToggle.Text = "Speed: OFF"
-
-local jumpToggle = Instance.new("TextButton", mainFrame)
-jumpToggle.Size = UDim2.new(1, -20, 0, 30)
-jumpToggle.Position = UDim2.new(0, 10, 0, 120)
-jumpToggle.Text = "Inf Jump: OFF"
-
-spawn(function()
-    while wait() do
-        local t = tick() * 0.5
-        local r = math.sin(t) * 127 + 128
-        local g = math.sin(t + 2) * 127 + 128
-        local b = math.sin(t + 4) * 127 + 128
-        mainFrame.BackgroundColor3 = Color3.fromRGB(r, g, b)
-        minimizeButton.BackgroundColor3 = Color3.fromRGB(r, g, b)
-    end
-end)
-
-local minimized = false
-minimizeButton.MouseButton1Click:Connect(function()
-    minimized = not minimized
-    for _, v in pairs(mainFrame:GetChildren()) do
-        if v ~= minimizeButton then
-            v.Visible = not minimized
-        end
-    end
-end)
-
-speedBox.FocusLost:Connect(function(enter)
-    if enter then
-        local val = tonumber(speedBox.Text)
-        if val and val >= 0 and val <= 1000000 then
-            speed = val
-            saveData()
-            if speedOn then humanoid.WalkSpeed = speed end
-        else
-            speedBox.Text = tostring(speed)
-        end
-    end
-end)
-
-speedToggle.MouseButton1Click:Connect(function()
-    speedOn = not speedOn
-    speedToggle.Text = "Speed: " .. (speedOn and "ON" or "OFF")
-    humanoid.WalkSpeed = speedOn and speed or 16
-    saveData()
-end)
-
-jumpToggle.MouseButton1Click:Connect(function()
-    infJumpOn = not infJumpOn
-    jumpToggle.Text = "Inf Jump: " .. (infJumpOn and "ON" or "OFF")
-    saveData()
-end)
-
+-- Infinite Jump Handler
 UIS.JumpRequest:Connect(function()
-    if infJumpOn then
-        humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-    end
-end)
-
-player.CharacterAdded:Connect(function(char)
-    character = char
-    humanoid = char:WaitForChild("Humanoid")
-    if speedOn then humanoid.WalkSpeed = speed end
-end)
-
-speedBox.Text = tostring(speed)
-speedToggle.Text = "Speed: " .. (speedOn and "ON" or "OFF")
-jumpToggle.Text = "Inf Jump: " .. (infJumpOn and "ON" or "OFF")
-if speedOn then humanoid.WalkSpeed = speed end
-local color = Color3.fromHSV(hue, 1, 1)
-        Frame.BackgroundColor3 = color
-    end
-end)
-
--- Tombol Minimize
-local minimizeBtn = Instance.new("TextButton")
-minimizeBtn.Size = UDim2.new(0, 25, 0, 25)
-minimizeBtn.Position = UDim2.new(1, -30, 0, 5)
-minimizeBtn.BackgroundTransparency = 1
-minimizeBtn.Text = "-"
-minimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-minimizeBtn.Parent = Frame
-
-minimizeBtn.MouseButton1Click:Connect(function()
-    minimized = not minimized
-    for _, child in pairs(Frame:GetChildren()) do
-        if child:IsA("TextButton") or child:IsA("TextBox") then
-            if child ~= minimizeBtn then
-                child.Visible = not minimized
-            end
-        end
-    end
-    if minimized then
-        Frame.Size = UDim2.new(0, 60, 0, 30)
-    else
-        Frame.Size = UDim2.new(0, 200, 0, 200)
-    end
-end)
-
--- Tombol Speed Toggle
-local speedBtn = Instance.new("TextButton")
-speedBtn.Size = UDim2.new(1, -20, 0, 40)
-speedBtn.Position = UDim2.new(0, 10, 0, 10)
-speedBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-speedBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-speedBtn.Text = speedOn and "Speed: ON" or "Speed: OFF"
-speedBtn.Parent = Frame
-
-speedBtn.MouseButton1Click:Connect(function()
-    speedOn = not speedOn
-    if speedOn then
-        humanoid.WalkSpeed = math.clamp(customSpeed, 0, maxSpeed)
-        speedBtn.Text = "Speed: ON"
-    else
-        humanoid.WalkSpeed = defaultSpeed
-        speedBtn.Text = "Speed: OFF"
-    end
-    saveData()
-end)
-
--- TextBox untuk Input Speed
-local speedBox = Instance.new("TextBox")
-speedBox.Size = UDim2.new(1, -20, 0, 30)
-speedBox.Position = UDim2.new(0, 10, 0, 55)
-speedBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-speedBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-speedBox.PlaceholderText = "Set Speed (max 1000)"
-speedBox.ClearTextOnFocus = false
-speedBox.Text = tostring(customSpeed)
-speedBox.Parent = Frame
-
-speedBox.FocusLost:Connect(function(enterPressed)
-    if enterPressed then
-        local val = tonumber(speedBox.Text)
-        if val then
-            customSpeed = math.clamp(val, 0, maxSpeed)
-            if speedOn then
-                humanoid.WalkSpeed = customSpeed
-            end
-            saveData()
-        end
-    end
-end)
-
--- Tombol Infinite Jump Toggle
-local jumpBtn = Instance.new("TextButton")
-jumpBtn.Size = UDim2.new(1, -20, 0, 40)
-jumpBtn.Position = UDim2.new(0, 10, 0, 90)
-jumpBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-jumpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-jumpBtn.Text = infJumpOn and "Inf Jump: ON" or "Inf Jump: OFF"
-jumpBtn.Parent = Frame
-
-jumpBtn.MouseButton1Click:Connect(function()
-    infJumpOn = not infJumpOn
-    jumpBtn.Text = infJumpOn and "Inf Jump: ON" or "Inf Jump: OFF"
-    saveData()
-end)
-
--- Infinite Jump Logic
-UIS.JumpRequest:Connect(function()
-    if infJumpOn and humanoid then
+    if infJumpEnabled then
         humanoid:ChangeState("Jumping")
     end
 end)
 
--- Restore saat respawn
-player.CharacterAdded:Connect(function(char)
-    character = char
-    humanoid = char:WaitForChild("Humanoid")
-    if speedOn then
-        humanoid.WalkSpeed = customSpeed
+-- Create GUI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = player:WaitForChild("PlayerGui")
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 250, 0, 150)
+MainFrame.Position = UDim2.new(0.5, -125, 0.5, -75)
+MainFrame.BackgroundColor3 = Color3.fromRGB(80, 0, 120)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner", MainFrame)
+UICorner.CornerRadius = UDim.new(0, 10)
+
+-- Title Bar
+local TitleBar = Instance.new("TextLabel")
+TitleBar.Size = UDim2.new(1, -30, 0, 30)
+TitleBar.BackgroundTransparency = 1
+TitleBar.Text = "Speed & Jump Control"
+TitleBar.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleBar.TextScaled = true
+TitleBar.Font = Enum.Font.GothamBold
+TitleBar.Parent = MainFrame
+
+-- Minimize Button
+local MinBtn = Instance.new("TextButton")
+MinBtn.Size = UDim2.new(0, 30, 0, 30)
+MinBtn.Position = UDim2.new(1, -30, 0, 0)
+MinBtn.Text = "-"
+MinBtn.TextScaled = true
+MinBtn.Font = Enum.Font.GothamBold
+MinBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 200)
+MinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinBtn.Parent = MainFrame
+
+local MinCorner = Instance.new("UICorner", MinBtn)
+MinCorner.CornerRadius = UDim.new(0, 8)
+
+-- Buttons
+local SpeedBtn = Instance.new("TextButton")
+SpeedBtn.Size = UDim2.new(1, -20, 0, 40)
+SpeedBtn.Position = UDim2.new(0, 10, 0, 40)
+SpeedBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 180)
+SpeedBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedBtn.Text = "Speed: OFF"
+SpeedBtn.TextScaled = true
+SpeedBtn.Font = Enum.Font.GothamBold
+SpeedBtn.Parent = MainFrame
+Instance.new("UICorner", SpeedBtn).CornerRadius = UDim.new(0, 8)
+
+local JumpBtn = Instance.new("TextButton")
+JumpBtn.Size = UDim2.new(1, -20, 0, 40)
+JumpBtn.Position = UDim2.new(0, 10, 0, 90)
+JumpBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 180)
+JumpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+JumpBtn.Text = "Inf Jump: OFF"
+JumpBtn.TextScaled = true
+JumpBtn.Font = Enum.Font.GothamBold
+JumpBtn.Parent = MainFrame
+Instance.new("UICorner", JumpBtn).CornerRadius = UDim.new(0, 8)
+
+-- Button Logic
+SpeedBtn.MouseButton1Click:Connect(function()
+    speedEnabled = not speedEnabled
+    if speedEnabled then
+        humanoid.WalkSpeed = maxSpeed
+        SpeedBtn.Text = "Speed: ON"
     else
         humanoid.WalkSpeed = defaultSpeed
+        SpeedBtn.Text = "Speed: OFF"
     end
 end)
 
--- Terapkan setting awal setelah load
-if speedOn then
-    humanoid.WalkSpeed = customSpeed
-else
-    humanoid.WalkSpeed = defaultSpeed
-end
+JumpBtn.MouseButton1Click:Connect(function()
+    infJumpEnabled = not infJumpEnabled
+    JumpBtn.Text = infJumpEnabled and "Inf Jump: ON" or "Inf Jump: OFF"
+end)
+
+-- Minimize Logic
+local minimized = false
+MinBtn.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    if minimized then
+        for _, obj in ipairs(MainFrame:GetChildren()) do
+            if obj:IsA("TextButton") or obj:IsA("TextLabel") then
+                if obj ~= TitleBar and obj ~= MinBtn then
+                    obj.Visible = false
+                end
+            end
+        end
+        MainFrame.Size = UDim2.new(0, 250, 0, 30)
+        MinBtn.Text = "+"
+    else
+        for _, obj in ipairs(MainFrame:GetChildren()) do
+            obj.Visible = true
+        end
+        MainFrame.Size = UDim2.new(0, 250, 0, 150)
+        MinBtn.Text = "-"
+    end
+end)
