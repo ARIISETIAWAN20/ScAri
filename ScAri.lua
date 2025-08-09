@@ -6,25 +6,29 @@ local HttpService = game:GetService("HttpService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- Check if Delta Executor API exists
+-- Delta Executor safe file API
 local DeltaAPI = {}
-
-if type(getgenv) == "function" and type(getgenv().Delta) == "table" then
-    DeltaAPI.isfile = getgenv().Delta.isfile
-    DeltaAPI.readfile = getgenv().Delta.readfile
-    DeltaAPI.writefile = getgenv().Delta.writefile
-else
-    -- fallback biasa, tapi kemungkinan tidak berfungsi di Delta
-    DeltaAPI.isfile = isfile
-    DeltaAPI.readfile = readfile
-    DeltaAPI.writefile = writefile
+do
+    local env = getgenv and getgenv() or {}
+    local delta = env.Delta
+    if type(delta) == "table" then
+        DeltaAPI.isfile = delta.isfile
+        DeltaAPI.readfile = delta.readfile
+        DeltaAPI.writefile = delta.writefile
+    else
+        -- fallback
+        DeltaAPI.isfile = isfile
+        DeltaAPI.readfile = readfile
+        DeltaAPI.writefile = writefile
+    end
 end
 
 local fileName = "ARI HUB.json"
 
 local function safeIsFile(fname)
     if type(DeltaAPI.isfile) == "function" then
-        return DeltaAPI.isfile(fname)
+        local success, result = pcall(DeltaAPI.isfile, fname)
+        return success and result or false
     else
         return false
     end
@@ -32,27 +36,26 @@ end
 
 local function safeReadFile(fname)
     if type(DeltaAPI.readfile) == "function" and safeIsFile(fname) then
-        return DeltaAPI.readfile(fname)
-    else
-        return nil
+        local success, content = pcall(DeltaAPI.readfile, fname)
+        if success then return content end
     end
+    return nil
 end
 
 local function safeWriteFile(fname, content)
     if type(DeltaAPI.writefile) == "function" then
-        DeltaAPI.writefile(fname, content)
+        pcall(DeltaAPI.writefile, fname, content)
     end
 end
 
 local function loadSettings()
     local data = safeReadFile(fileName)
     if data then
-        local suc, res = pcall(function() return HttpService:JSONDecode(data) end)
-        if suc and type(res) == "table" then
-            return res
+        local success, decoded = pcall(function() return HttpService:JSONDecode(data) end)
+        if success and type(decoded) == "table" then
+            return decoded
         end
     end
-    -- default settings
     return {
         speed = 16,
         jumpPower = 50,
@@ -65,8 +68,8 @@ local function loadSettings()
 end
 
 local function saveSettings(tbl)
-    local json = HttpService:JSONEncode(tbl)
-    safeWriteFile(fileName, json)
+    local encoded = HttpService:JSONEncode(tbl)
+    safeWriteFile(fileName, encoded)
 end
 
 local settings = loadSettings()
@@ -82,9 +85,9 @@ local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "ARI_HUB_GUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.IgnoreGuiInset = true
-ScreenGui.Parent = playerGui
+ScreenGui.Parent = playerGui -- PENTING: harus ke PlayerGui agar di Delta bisa tampil
 
-local scale = 0.9 -- Scale 10% lebih kecil
+local scale = 0.9 -- 10% lebih kecil
 
 local mainWidth = 250 * scale
 local mainHeight = 350 * scale
@@ -419,7 +422,7 @@ local function createBlockUnder()
     blockPart.Color = Color3.fromRGB(200, 0, 200)
     blockPart.Parent = workspace
 
-    local offset = Vector3.new(0, -(hrp.Size.Y/2 + blockPart.Size.Y/2), 0)
+    local offset = Vector3.new(0, -(hrp.Size.Y / 2 + blockPart.Size.Y / 2), 0)
     blockPart.CFrame = hrp.CFrame * CFrame.new(offset)
 end
 
@@ -438,65 +441,5 @@ local function updateBlock()
         return
     end
 
-    local offset = Vector3.new(0, -(hrp.Size.Y/2 + blockPart.Size.Y/2), 0)
-    blockPart.CFrame = hrp.CFrame * CFrame.new(offset)
-end
-
-local function removeBlock()
-    if blockPart then
-        blockPart:Destroy()
-        blockPart = nil
-    end
-end
-
-local blockUpdateConnection = nil
-
-local function setBlockEnabled(state)
-    if state then
-        createBlockUnder()
-        if not blockUpdateConnection then
-            blockUpdateConnection = RunService.Heartbeat:Connect(updateBlock)
-        end
-    else
-        if blockUpdateConnection then
-            blockUpdateConnection:Disconnect()
-            blockUpdateConnection = nil
-        end
-        removeBlock()
-    end
-end
-
-BlockBtn.MouseButton1Click:Connect(function()
-    blockEnabled = not blockEnabled
-    settings.blockEnabled = blockEnabled
-    saveSettings(settings)
-    BlockBtn.Text = blockEnabled and "Block Under: ON" or "Block Under: OFF"
-    setBlockEnabled(blockEnabled)
-end)
-
--- Minimize & Close Buttons
-local minimized = false
-local toggles = {SpeedBtn, SpeedBox, JumpBtn, JumpBox, AntiClipBtn, ESPBtn, BlockBtn}
-
-MinBtn.MouseButton1Click:Connect(function()
-    minimized = not minimized
-    for _, v in pairs(toggles) do
-        v.Visible = not minimized
-    end
-    MainFrame.Size = minimized and UDim2.new(0, mainWidth, 0, 30 * scale) or UDim2.new(0, mainWidth, 0, mainHeight)
-    MinBtn.Text = minimized and "+" or "-"
-end)
-
-CloseBtn.MouseButton1Click:Connect(function()
-    ScreenGui:Destroy()
-end)
-
--- Start states
-if speedEnabled then
-    local char = player.Character or player.CharacterAdded:Wait()
-    local hum = char:FindFirstChildOfClass("Humanoid")
-    if hum then hum.WalkSpeed = tonumber(settings.speed) or 16 end
-end
-
-if antiClipEnabled then
+    local offset =
     
