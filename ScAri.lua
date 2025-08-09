@@ -6,29 +6,25 @@ local HttpService = game:GetService("HttpService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- Delta Executor safe file API
+-- Delta Executor file API detection
 local DeltaAPI = {}
-do
-    local env = getgenv and getgenv() or {}
-    local delta = env.Delta
-    if type(delta) == "table" then
-        DeltaAPI.isfile = delta.isfile
-        DeltaAPI.readfile = delta.readfile
-        DeltaAPI.writefile = delta.writefile
-    else
-        -- fallback
-        DeltaAPI.isfile = isfile
-        DeltaAPI.readfile = readfile
-        DeltaAPI.writefile = writefile
-    end
+
+if type(getgenv) == "function" and type(getgenv().Delta) == "table" then
+    DeltaAPI.isfile = getgenv().Delta.isfile
+    DeltaAPI.readfile = getgenv().Delta.readfile
+    DeltaAPI.writefile = getgenv().Delta.writefile
+else
+    -- fallback biasa, kemungkinan tidak berfungsi di Delta Executor
+    DeltaAPI.isfile = isfile
+    DeltaAPI.readfile = readfile
+    DeltaAPI.writefile = writefile
 end
 
 local fileName = "ARI HUB.json"
 
 local function safeIsFile(fname)
     if type(DeltaAPI.isfile) == "function" then
-        local success, result = pcall(DeltaAPI.isfile, fname)
-        return success and result or false
+        return DeltaAPI.isfile(fname)
     else
         return false
     end
@@ -36,26 +32,27 @@ end
 
 local function safeReadFile(fname)
     if type(DeltaAPI.readfile) == "function" and safeIsFile(fname) then
-        local success, content = pcall(DeltaAPI.readfile, fname)
-        if success then return content end
+        return DeltaAPI.readfile(fname)
+    else
+        return nil
     end
-    return nil
 end
 
 local function safeWriteFile(fname, content)
     if type(DeltaAPI.writefile) == "function" then
-        pcall(DeltaAPI.writefile, fname, content)
+        DeltaAPI.writefile(fname, content)
     end
 end
 
 local function loadSettings()
     local data = safeReadFile(fileName)
     if data then
-        local success, decoded = pcall(function() return HttpService:JSONDecode(data) end)
-        if success and type(decoded) == "table" then
-            return decoded
+        local suc, res = pcall(function() return HttpService:JSONDecode(data) end)
+        if suc and type(res) == "table" then
+            return res
         end
     end
+    -- default settings
     return {
         speed = 16,
         jumpPower = 50,
@@ -68,8 +65,8 @@ local function loadSettings()
 end
 
 local function saveSettings(tbl)
-    local encoded = HttpService:JSONEncode(tbl)
-    safeWriteFile(fileName, encoded)
+    local json = HttpService:JSONEncode(tbl)
+    safeWriteFile(fileName, json)
 end
 
 local settings = loadSettings()
@@ -85,9 +82,9 @@ local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "ARI_HUB_GUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.IgnoreGuiInset = true
-ScreenGui.Parent = playerGui -- PENTING: harus ke PlayerGui agar di Delta bisa tampil
+ScreenGui.Parent = playerGui
 
-local scale = 0.9 -- 10% lebih kecil
+local scale = 0.9 -- Scale 10% lebih kecil
 
 local mainWidth = 250 * scale
 local mainHeight = 350 * scale
@@ -241,14 +238,34 @@ UserInputService.JumpRequest:Connect(function()
     end
 end)
 
--- Anti Clip Function
-local function setAntiClip(state)
-    local char = player.Character
-    if not char then return end
-    for _, p in pairs(char:GetChildren()) do
-        if p:IsA("BasePart") then
-            p.CanCollide = not state
+-- Anti Clip Functions & loop
+local antiClipConnection
+local function startAntiClip()
+    if antiClipConnection then antiClipConnection:Disconnect() end
+    antiClipConnection = RunService.Heartbeat:Connect(function()
+        local char = player.Character
+        if char then
+            for _, part in pairs(char:GetChildren()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
         end
+    end)
+end
+
+local function stopAntiClip()
+    if antiClipConnection then
+        antiClipConnection:Disconnect()
+        antiClipConnection = nil
+    end
+end
+
+local function setAntiClip(state)
+    if state then
+        startAntiClip()
+    else
+        stopAntiClip()
     end
 end
 
@@ -422,7 +439,7 @@ local function createBlockUnder()
     blockPart.Color = Color3.fromRGB(200, 0, 200)
     blockPart.Parent = workspace
 
-    local offset = Vector3.new(0, -(hrp.Size.Y / 2 + blockPart.Size.Y / 2), 0)
+    local offset = Vector3.new(0, -(hrp.Size.Y/2 + blockPart.Size.Y/2), 0)
     blockPart.CFrame = hrp.CFrame * CFrame.new(offset)
 end
 
@@ -441,5 +458,6 @@ local function updateBlock()
         return
     end
 
-    local offset =
+    local offset = Vector3.new(0, -(hrp.Size.Y/2 + blockPart.Size.Y/2), 0)
+    blockPart.CFrame = hrp.CFrame
     
