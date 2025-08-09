@@ -1,4 +1,4 @@
--- ARI HUB Minimalis Clean GUI
+-- ARI HUB Minimalis compatible Delta Executor HP
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -7,6 +7,7 @@ local HttpService = game:GetService("HttpService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
+-- Delta file API safe
 local DeltaAPI = {}
 if type(getgenv) == "function" and type(getgenv().Delta) == "table" then
     DeltaAPI.isfile = getgenv().Delta.isfile
@@ -68,7 +69,6 @@ end
 
 local settings = loadSettings()
 
--- Warna sederhana untuk GUI
 local cBlack = Color3.fromRGB(30, 30, 30)
 local cGray = Color3.fromRGB(60, 60, 60)
 local cWhite = Color3.fromRGB(230, 230, 230)
@@ -88,7 +88,7 @@ local tbHeight = 30 * scale
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, mainWidth, 0, mainHeight)
-MainFrame.Position = UDim2.new(0.5, -mainWidth / 2, 0, 10) -- fixed tengah atas layar
+MainFrame.Position = UDim2.new(0.5, -mainWidth / 2, 0, 10)
 MainFrame.BackgroundColor3 = cBlack
 MainFrame.BorderSizePixel = 0
 MainFrame.Parent = ScreenGui
@@ -96,7 +96,6 @@ local mainCorner = Instance.new("UICorner")
 mainCorner.CornerRadius = UDim.new(0, 12)
 mainCorner.Parent = MainFrame
 
--- Padding dalam frame
 local padding = Instance.new("UIPadding")
 padding.PaddingLeft = UDim.new(0, 12)
 padding.PaddingRight = UDim.new(0, 12)
@@ -104,7 +103,6 @@ padding.PaddingTop = UDim.new(0, 12)
 padding.PaddingBottom = UDim.new(0, 12)
 padding.Parent = MainFrame
 
--- Judul sederhana
 local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, 0, 0, 30 * scale)
 Title.Position = UDim2.new(0, 0, 0, 0)
@@ -115,7 +113,6 @@ Title.TextScaled = true
 Title.Font = Enum.Font.GothamBlack
 Title.Parent = MainFrame
 
--- Container isi tombol dan textbox dengan UIListLayout rapih vertikal
 local contentFrame = Instance.new("Frame")
 contentFrame.Size = UDim2.new(1, 0, 1, -40 * scale)
 contentFrame.Position = UDim2.new(0, 0, 0, 40 * scale)
@@ -127,7 +124,6 @@ listLayout.SortOrder = Enum.SortOrder.LayoutOrder
 listLayout.Padding = UDim.new(0, 10 * scale)
 listLayout.Parent = contentFrame
 
--- Fungsi pembuat tombol dan textbox
 local currentLayoutOrder = 1
 local function createButton(text)
     local btn = Instance.new("TextButton")
@@ -163,18 +159,14 @@ local function createTextBox(text)
     return tb
 end
 
--- Tombol dan TextBox
 local SpeedBtn = createButton("Speed: OFF")
 local SpeedBox = createTextBox(tostring(settings.speed))
-
 local JumpBtn = createButton("Inf Jump: OFF")
 local JumpBox = createTextBox(tostring(settings.jumpPower))
-
 local AntiClipBtn = createButton("Anti Clip: OFF")
 local ESPBtn = createButton("ESP: OFF")
 local BlockBtn = createButton("Block Under: OFF")
 
--- Tombol minimize dan close
 local MinBtn = Instance.new("TextButton")
 MinBtn.Size = UDim2.new(0, 30 * scale, 0, 30 * scale)
 MinBtn.Position = UDim2.new(1, -60 * scale, 0, 0)
@@ -201,14 +193,12 @@ local closeCorner = Instance.new("UICorner")
 closeCorner.CornerRadius = UDim.new(0, 8)
 closeCorner.Parent = CloseBtn
 
--- States
 local speedEnabled = settings.speedEnabled or false
 local infJumpEnabled = settings.infJumpEnabled or false
 local antiClipEnabled = settings.antiClipEnabled or false
 local espEnabled = settings.espEnabled or false
 local blockEnabled = settings.blockEnabled or false
 
--- Infinite Jump
 UserInputService.JumpRequest:Connect(function()
     if infJumpEnabled then
         local char = player.Character
@@ -223,7 +213,6 @@ UserInputService.JumpRequest:Connect(function()
     end
 end)
 
--- Anti Clip function
 local function setAntiClip(state)
     local char = player.Character
     if not char then return end
@@ -234,7 +223,6 @@ local function setAntiClip(state)
     end
 end
 
--- Speed toggle
 SpeedBtn.MouseButton1Click:Connect(function()
     speedEnabled = not speedEnabled
     settings.speedEnabled = speedEnabled
@@ -252,7 +240,6 @@ SpeedBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- SpeedBox save
 SpeedBox.FocusLost:Connect(function()
     local val = tonumber(SpeedBox.Text)
     if val and val >= 16 and val <= 100000 then
@@ -268,7 +255,6 @@ SpeedBox.FocusLost:Connect(function()
     end
 end)
 
--- Jump toggle
 JumpBtn.MouseButton1Click:Connect(function()
     infJumpEnabled = not infJumpEnabled
     settings.infJumpEnabled = infJumpEnabled
@@ -276,7 +262,6 @@ JumpBtn.MouseButton1Click:Connect(function()
     JumpBtn.Text = infJumpEnabled and "Inf Jump: ON" or "Inf Jump: OFF"
 end)
 
--- JumpBox save
 JumpBox.FocusLost:Connect(function()
     local val = tonumber(JumpBox.Text)
     if val and val >= 50 and val <= 1000 then
@@ -287,7 +272,6 @@ JumpBox.FocusLost:Connect(function()
     end
 end)
 
--- AntiClip toggle
 AntiClipBtn.MouseButton1Click:Connect(function()
     antiClipEnabled = not antiClipEnabled
     settings.antiClipEnabled = antiClipEnabled
@@ -296,7 +280,6 @@ AntiClipBtn.MouseButton1Click:Connect(function()
     AntiClipBtn.Text = antiClipEnabled and "Anti Clip: ON" or "Anti Clip: OFF"
 end)
 
--- ESP system
 local espLabels = {}
 
 local function createEspLabel(plr)
@@ -378,9 +361,7 @@ Players.PlayerRemoving:Connect(function(plr)
     removeEspLabel(plr)
 end)
 
--- Block Under Character (transparan block)
 local blockPart
-
 local function createBlock()
     if blockPart and blockPart.Parent then
         blockPart:Destroy()
@@ -402,8 +383,6 @@ local function updateBlockPosition()
     if not char then return end
     local root = char:FindFirstChild("HumanoidRootPart")
     if not root then return end
-
-    -- Tetap di 5 studs di bawah tanpa naik/stuck
     blockPart.CFrame = CFrame.new(root.Position.X, root.Position.Y - 5, root.Position.Z)
 end
 
@@ -432,7 +411,6 @@ BlockBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Minimize and Close logic
 local minimized = false
 local toggleObjects = {SpeedBtn, SpeedBox, JumpBtn, JumpBox, AntiClipBtn, ESPBtn, BlockBtn}
 
@@ -449,7 +427,6 @@ CloseBtn.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
 end)
 
--- Restore on respawn
 player.CharacterAdded:Connect(function(char)
     local hum = char:WaitForChild("Humanoid")
     if speedEnabled then
@@ -460,14 +437,13 @@ player.CharacterAdded:Connect(function(char)
     setAntiClip(antiClipEnabled)
 end)
 
--- Anti AFK
 local VirtualUser = game:GetService("VirtualUser")
 player.Idled:Connect(function()
     VirtualUser:CaptureController()
     VirtualUser:ClickButton2(Vector2.new())
 end)
 
--- Initial apply states
+-- Apply initial state if character loaded
 if player.Character then
     setAntiClip(antiClipEnabled)
     if speedEnabled then
@@ -483,4 +459,8 @@ if player.Character then
 end
 
 -- Set initial button texts
-SpeedBtn
+SpeedBtn.Text = speedEnabled and "Speed: ON" or "Speed: OFF"
+JumpBtn.Text = infJumpEnabled and "Inf Jump: ON" or "Inf Jump: OFF"
+AntiClipBtn.Text = antiClipEnabled and "Anti Clip: ON" or "Anti Clip: OFF"
+ESPBtn.Text = espEnabled and "ESP: ON" or "ESP: OFF"
+BlockBtn.Text = blockEnabled and "Block Under: ON" or "Block Under: OFF"
