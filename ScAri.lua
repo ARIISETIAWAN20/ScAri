@@ -1,217 +1,120 @@
--- Speed & Infinite Jump GUI Script for Roblox (Delta Executor Compatible)
--- Default speed: 16, Max speed: 100000
--- Features: Adjustable Speed & Inf Jump Power (saved in ARI HUB.json), Toggle Speed, Toggle Infinite Jump, Minimize/Maximize, Close GUI, Persistent across respawn
+-- ARI HUB Key System with 11-hour cache
+-- Keys: HELLO ARI, HELLO WORLD, HELLO BRO
+-- Saves last valid key usage time in KEY ARI HUB.json
 
-local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
--- File Handling
-local fileName = "ARI HUB.json"
-local function loadSettings()
-    if isfile(fileName) then
-        return HttpService:JSONDecode(readfile(fileName))
-    else
-        return {speed = 16, jumpPower = 50}
-    end
+local keyFile = "KEY ARI HUB.json"
+local savedData = nil
+
+-- Load saved data if exists
+if isfile(keyFile) then
+    local data = readfile(keyFile)
+    pcall(function()
+        savedData = HttpService:JSONDecode(data)
+    end)
 end
 
-local function saveSettings(settings)
-    writefile(fileName, HttpService:JSONEncode(settings))
+-- Check if last usage was within 11 hours
+local function hasValidSession()
+    if savedData and savedData.key and savedData.lastUsed then
+        local elapsed = os.time() - savedData.lastUsed
+        return elapsed <= (11 * 3600)
+    end
+    return false
 end
 
-local settings = loadSettings()
+-- GUI Setup
+local function createKeyGui()
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.IgnoreGuiInset = true
+    ScreenGui.Parent = player:WaitForChild("PlayerGui")
 
--- Variables
-local speedEnabled = false
-local infJumpEnabled = false
-local UIS = game:GetService("UserInputService")
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(0, 300, 0, 150)
+    Frame.Position = UDim2.new(0.5, -150, 0.5, -75)
+    Frame.BackgroundColor3 = Color3.fromRGB(80, 0, 120)
+    Frame.Parent = ScreenGui
+    Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 10)
 
--- Infinite Jump Handler
-UIS.JumpRequest:Connect(function()
-    if infJumpEnabled then
-        local character = player.Character
-        if character and character:FindFirstChildOfClass("Humanoid") then
-            character:FindFirstChildOfClass("Humanoid").UseJumpPower = true
-            character:FindFirstChildOfClass("Humanoid").JumpPower = tonumber(settings.jumpPower) or 50
-            character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(1, 0, 0, 40)
+    Title.BackgroundTransparency = 1
+    Title.Text = "ARI HUB - Key System"
+    Title.Font = Enum.Font.GothamBold
+    Title.TextScaled = true
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.Parent = Frame
+
+    local KeyBox = Instance.new("TextBox")
+    KeyBox.Size = UDim2.new(1, -20, 0, 40)
+    KeyBox.Position = UDim2.new(0, 10, 0, 50)
+    KeyBox.BackgroundColor3 = Color3.fromRGB(100, 0, 150)
+    KeyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    KeyBox.TextScaled = true
+    KeyBox.Font = Enum.Font.GothamBold
+    KeyBox.PlaceholderText = "Enter Key"
+    KeyBox.Parent = Frame
+    Instance.new("UICorner", KeyBox).CornerRadius = UDim.new(0, 8)
+
+    local Status = Instance.new("TextLabel")
+    Status.Size = UDim2.new(1, 0, 0, 20)
+    Status.Position = UDim2.new(0, 0, 1, -25)
+    Status.BackgroundTransparency = 1
+    Status.Text = ""
+    Status.Font = Enum.Font.Gotham
+    Status.TextScaled = true
+    Status.TextColor3 = Color3.fromRGB(255, 100, 100)
+    Status.Parent = Frame
+
+    local SubmitBtn = Instance.new("TextButton")
+    SubmitBtn.Size = UDim2.new(1, -20, 0, 40)
+    SubmitBtn.Position = UDim2.new(0, 10, 0, 100)
+    SubmitBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 180)
+    SubmitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    SubmitBtn.Text = "Submit"
+    SubmitBtn.TextScaled = true
+    SubmitBtn.Font = Enum.Font.GothamBold
+    SubmitBtn.Parent = Frame
+    Instance.new("UICorner", SubmitBtn).CornerRadius = UDim.new(0, 8)
+
+    local validKeys = {
+        ["HELLO ARI"] = true,
+        ["HELLO WORLD"] = true,
+        ["HELLO BRO"] = true
+    }
+
+    local function validateKey(inputKey)
+        return validKeys[inputKey] == true
+    end
+
+    SubmitBtn.MouseButton1Click:Connect(function()
+        local inputKey = KeyBox.Text
+        if inputKey == "" then
+            Status.Text = "Please enter a key."
+            return
         end
-    end
-end)
 
--- Create GUI (Persistent)
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.ResetOnSpawn = false
-ScreenGui.IgnoreGuiInset = true
-ScreenGui.Parent = player:WaitForChild("PlayerGui")
-
-local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 250, 0, 240)
-MainFrame.Position = UDim2.new(0.5, -125, 0.5, -120)
-MainFrame.BackgroundColor3 = Color3.fromRGB(80, 0, 120)
-MainFrame.BorderSizePixel = 0
-MainFrame.Active = true
-MainFrame.Draggable = true
-MainFrame.Parent = ScreenGui
-Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
-
--- Title Bar
-local TitleBar = Instance.new("TextLabel")
-TitleBar.Size = UDim2.new(1, -60, 0, 30)
-TitleBar.BackgroundTransparency = 1
-TitleBar.Text = "Speed & Jump Control"
-TitleBar.TextColor3 = Color3.fromRGB(255, 255, 255)
-TitleBar.TextScaled = true
-TitleBar.Font = Enum.Font.GothamBold
-TitleBar.Parent = MainFrame
-
--- Minimize Button
-local MinBtn = Instance.new("TextButton")
-MinBtn.Size = UDim2.new(0, 30, 0, 30)
-MinBtn.Position = UDim2.new(1, -60, 0, 0)
-MinBtn.Text = "-"
-MinBtn.TextScaled = true
-MinBtn.Font = Enum.Font.GothamBold
-MinBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 200)
-MinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-MinBtn.Parent = MainFrame
-Instance.new("UICorner", MinBtn).CornerRadius = UDim.new(0, 8)
-MinBtn.ZIndex = 2
-
--- Close Button
-local CloseBtn = Instance.new("TextButton")
-CloseBtn.Size = UDim2.new(0, 30, 0, 30)
-CloseBtn.Position = UDim2.new(1, -30, 0, 0)
-CloseBtn.Text = "X"
-CloseBtn.TextScaled = true
-CloseBtn.Font = Enum.Font.GothamBold
-CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
-CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseBtn.Parent = MainFrame
-Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 8)
-CloseBtn.ZIndex = 2
-
--- Speed Button
-local SpeedBtn = Instance.new("TextButton")
-SpeedBtn.Size = UDim2.new(1, -20, 0, 40)
-SpeedBtn.Position = UDim2.new(0, 10, 0, 40)
-SpeedBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 180)
-SpeedBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-SpeedBtn.Text = "Speed: OFF"
-SpeedBtn.TextScaled = true
-SpeedBtn.Font = Enum.Font.GothamBold
-SpeedBtn.Parent = MainFrame
-Instance.new("UICorner", SpeedBtn).CornerRadius = UDim.new(0, 8)
-
--- Speed TextBox
-local SpeedBox = Instance.new("TextBox")
-SpeedBox.Size = UDim2.new(1, -20, 0, 30)
-SpeedBox.Position = UDim2.new(0, 10, 0, 85)
-SpeedBox.BackgroundColor3 = Color3.fromRGB(100, 0, 150)
-SpeedBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-SpeedBox.Text = tostring(settings.speed)
-SpeedBox.TextScaled = true
-SpeedBox.Font = Enum.Font.GothamBold
-SpeedBox.Parent = MainFrame
-Instance.new("UICorner", SpeedBox).CornerRadius = UDim.new(0, 8)
-
--- Jump Button
-local JumpBtn = Instance.new("TextButton")
-JumpBtn.Size = UDim2.new(1, -20, 0, 40)
-JumpBtn.Position = UDim2.new(0, 10, 0, 125)
-JumpBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 180)
-JumpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-JumpBtn.Text = "Inf Jump: OFF"
-JumpBtn.TextScaled = true
-JumpBtn.Font = Enum.Font.GothamBold
-JumpBtn.Parent = MainFrame
-Instance.new("UICorner", JumpBtn).CornerRadius = UDim.new(0, 8)
-
--- Jump Power TextBox
-local JumpBox = Instance.new("TextBox")
-JumpBox.Size = UDim2.new(1, -20, 0, 30)
-JumpBox.Position = UDim2.new(0, 10, 0, 170)
-JumpBox.BackgroundColor3 = Color3.fromRGB(100, 0, 150)
-JumpBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-JumpBox.Text = tostring(settings.jumpPower)
-JumpBox.TextScaled = true
-JumpBox.Font = Enum.Font.GothamBold
-JumpBox.Parent = MainFrame
-Instance.new("UICorner", JumpBox).CornerRadius = UDim.new(0, 8)
-
--- Speed Toggle Logic
-SpeedBtn.MouseButton1Click:Connect(function()
-    local char = player.Character or player.CharacterAdded:Wait()
-    local hum = char:FindFirstChildOfClass("Humanoid")
-    if not hum then return end
-
-    speedEnabled = not speedEnabled
-    if speedEnabled then
-        hum.WalkSpeed = tonumber(settings.speed) or 16
-        SpeedBtn.Text = "Speed: ON"
-    else
-        hum.WalkSpeed = 16
-        SpeedBtn.Text = "Speed: OFF"
-    end
-end)
-
--- Save Speed Setting
-SpeedBox.FocusLost:Connect(function()
-    local val = tonumber(SpeedBox.Text)
-    if val and val >= 16 and val <= 100000 then
-        settings.speed = val
-        saveSettings(settings)
-        if speedEnabled then
-            local char = player.Character or player.CharacterAdded:Wait()
-            local hum = char:FindFirstChildOfClass("Humanoid")
-            if hum then hum.WalkSpeed = val end
+        if validateKey(inputKey) then
+            writefile(keyFile, HttpService:JSONEncode({key = inputKey, lastUsed = os.time()}))
+            Status.TextColor3 = Color3.fromRGB(100, 255, 100)
+            Status.Text = "Access Granted!"
+            wait(0.5)
+            ScreenGui:Destroy()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/ARIISETIAWAN20/ScAri/main/ScAri.lua"))()
+        else
+            Status.TextColor3 = Color3.fromRGB(255, 100, 100)
+            Status.Text = "Invalid Key!"
         end
-    else
-        SpeedBox.Text = tostring(settings.speed)
-    end
-end)
+    end)
+end
 
--- Jump Toggle Logic
-JumpBtn.MouseButton1Click:Connect(function()
-    infJumpEnabled = not infJumpEnabled
-    JumpBtn.Text = infJumpEnabled and "Inf Jump: ON" or "Inf Jump: OFF"
-end)
-
--- Save Jump Power Setting
-JumpBox.FocusLost:Connect(function()
-    local val = tonumber(JumpBox.Text)
-    if val and val >= 50 and val <= 1000 then
-        settings.jumpPower = val
-        saveSettings(settings)
-    else
-        JumpBox.Text = tostring(settings.jumpPower)
-    end
-end)
-
--- Minimize Logic
-local minimized = false
-local elementsToToggle = {SpeedBtn, SpeedBox, JumpBtn, JumpBox}
-
-MinBtn.MouseButton1Click:Connect(function()
-    minimized = not minimized
-    for _, obj in ipairs(elementsToToggle) do
-        obj.Visible = not minimized
-    end
-    MainFrame.Size = minimized and UDim2.new(0, 250, 0, 30) or UDim2.new(0, 250, 0, 240)
-    MinBtn.Text = minimized and "+" or "-"
-end)
-
--- Close Logic
-CloseBtn.MouseButton1Click:Connect(function()
-    ScreenGui:Destroy()
-end)
-
--- Restore on Respawn
-player.CharacterAdded:Connect(function(char)
-    local hum = char:WaitForChild("Humanoid")
-    if speedEnabled then
-        hum.WalkSpeed = tonumber(settings.speed) or 16
-    else
-        hum.WalkSpeed = 16
-    end
-end)
+-- Main Execution
+if hasValidSession() then
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/ARIISETIAWAN20/ScAri/main/ScAri.lua"))()
+else
+    createKeyGui()
+end
