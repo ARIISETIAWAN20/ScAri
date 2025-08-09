@@ -1,407 +1,247 @@
---[[
-ARI HUB v2.0 Obfuscated
-Features:
-- Speed, Inf Jump, ESP, Anti-Clip, Anti-AFK
-- Settings persist across sessions
-]]
+-- Speed & Infinite Jump GUI Script for Roblox (Delta Executor Compatible)
+-- Added Anti Clip toggle (CanCollide toggle on HumanoidRootPart)
 
-local _G = getgenv()
 local Players = game:GetService("Players")
-local Http = game:GetService("HttpService")
-local Run = game:GetService("RunService")
-local WS = game:GetService("Workspace")
-local VIM = game:GetService("VirtualInputManager")
-local plr = Players.LocalPlayer
+local HttpService = game:GetService("HttpService")
+local player = Players.LocalPlayer
 
--- Config handling
-local configFile = "ARI_CONFIG.json"
-local function getConfig()
-    if isfile(configFile) then
-        return Http:JSONDecode(readfile(configFile))
-    end
-    return {
-        speed = 16,
-        jump = 50,
-        esp = false,
-        noClip = false,
-        antiAFK = true
-    }
-end
-
-local function saveConfig(cfg)
-    writefile(configFile, Http:JSONEncode(cfg))
-end
-
-local cfg = getConfig()
-
--- Module variables
-local speedActive = false
-local jumpActive = false
-local espActive = cfg.esp
-local clipActive = cfg.noClip
-local afkActive = cfg.antiAFK
-local UIS = game:GetService("UserInputService")
-local espElements = {}
-local lastPos = Vector3.new(0, 0, 0)
-local lastMove = os.time()
-
--- Jump handler
-UIS.JumpRequest:Connect(function()
-    if jumpActive then
-        local char = plr.Character
-        if char and char:FindFirstChildOfClass("Humanoid") then
-            local hum = char:FindFirstChildOfClass("Humanoid")
-            hum.UseJumpPower = true
-            hum.JumpPower = tonumber(cfg.jump) or 50
-            hum:ChangeState("Jumping")
-        end
-    end
-end)
-
--- Anti-AFK system
-local function preventAFK()
-    if not afkActive then return end
-    
-    if os.time() - lastMove > 20 then
-        VIM:SendKeyEvent(true, Enum.KeyCode.W, false, nil)
-        task.wait(0.1)
-        VIM:SendKeyEvent(false, Enum.KeyCode.W, false, nil)
-        lastMove = os.time()
-    end
-end
-
--- Movement tracking
-UIS.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.Keyboard then
-        lastMove = os.time()
-    end
-end)
-
--- Anti-clip system
-local function setupClipProtection(char)
-    if not char then return end
-    
-    local root = char:WaitForChild("HumanoidRootPart")
-    local lastValid = root.Position
-    
-    Run.Stepped:Connect(function()
-        if not clipActive or not char or not root then return end
-        
-        local current = root.Position
-        if (current - lastValid).Magnitude > 10 then
-            root.CFrame = CFrame.new(lastValid)
-        else
-            lastValid = current
-        end
-    end)
-end
-
--- ESP system
-local function createESP(target)
-    if not espActive or target == plr then return end
-    
-    local char = target.Character or target.CharacterAdded:Wait()
-    local root = char:WaitForChild("HumanoidRootPart")
-    
-    -- Create ESP elements
-    local gui = Instance.new("BillboardGui")
-    gui.Name = target.Name .. "_ESP"
-    gui.AlwaysOnTop = true
-    gui.Size = UDim2.new(0, 200, 0, 50)
-    gui.StudsOffset = Vector3.new(0, 2, 0)
-    gui.Adornee = root
-    gui.Parent = char
-    
-    local nameTag = Instance.new("TextLabel")
-    nameTag.Size = UDim2.new(1, 0, 0.5, 0)
-    nameTag.BackgroundTransparency = 1
-    nameTag.Text = target.Name
-    nameTag.TextColor3 = Color3.new(1, 1, 1)
-    nameTag.TextScaled = true
-    nameTag.Font = Enum.Font.GothamBold
-    nameTag.Parent = gui
-    
-    local distTag = Instance.new("TextLabel")
-    distTag.Size = UDim2.new(1, 0, 0.5, 0)
-    distTag.Position = UDim2.new(0, 0, 0.5, 0)
-    distTag.BackgroundTransparency = 1
-    distTag.TextColor3 = Color3.new(1, 1, 1)
-    distTag.TextScaled = true
-    distTag.Font = Enum.Font.Gotham
-    distTag.Parent = gui
-    
-    espElements[target] = {gui = gui, name = nameTag, dist = distTag}
-    
-    -- Update distance
-    Run.Heartbeat:Connect(function()
-        if not espActive or not char or not root or not plr.Character then return end
-        
-        local localRoot = plr.Character:FindFirstChild("HumanoidRootPart")
-        if localRoot then
-            local distance = (root.Position - localRoot.Position).Magnitude
-            distTag.Text = string.format("%.1f studs", distance)
-        end
-    end)
-end
-
-local function clearESP()
-    for _, data in pairs(espElements) do
-        if data.gui then data.gui:Destroy() end
-    end
-    espElements = {}
-end
-
-local function toggleESP(state)
-    espActive = state
-    cfg.esp = state
-    saveConfig(cfg)
-    
-    if state then
-        clearESP()
-        for _, p in ipairs(Players:GetPlayers()) do
-            if p ~= plr then createESP(p) end
-        end
-        Players.PlayerAdded:Connect(createESP)
+local fileName = "ARI HUB.json"
+local function loadSettings()
+    if isfile(fileName) then
+        return HttpService:JSONDecode(readfile(fileName))
     else
-        clearESP()
+        return {speed = 16, jumpPower = 50}
     end
 end
 
--- Initialize ESP
-if espActive then toggleESP(true) end
+local function saveSettings(settings)
+    writefile(fileName, HttpService:JSONEncode(settings))
+end
 
--- Create interface
-local ui = Instance.new("ScreenGui")
-ui.ResetOnSpawn = false
-ui.IgnoreGuiInset = true
-ui.Parent = plr:WaitForChild("PlayerGui")
+local settings = loadSettings()
 
-local main = Instance.new("Frame")
-main.Size = UDim2.new(0, 250, 0, 340)
-main.Position = UDim2.new(0.5, -125, 0.5, -170)
-main.BackgroundColor3 = Color3.fromRGB(80, 0, 120)
-main.BorderSizePixel = 0
-main.Active = true
-main.Draggable = true
-main.Parent = ui
-Instance.new("UICorner", main).CornerRadius = UDim.new(0, 10)
+local speedEnabled = false
+local infJumpEnabled = false
+local antiClipEnabled = false
+local UIS = game:GetService("UserInputService")
 
--- Title bar
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, -60, 0, 30)
-title.BackgroundTransparency = 1
-title.Text = "ARI HUB v2.0"
-title.TextColor3 = Color3.fromRGB(255, 255, 255)
-title.TextScaled = true
-title.Font = Enum.Font.GothamBold
-title.Parent = main
+-- Infinite Jump Handler
+UIS.JumpRequest:Connect(function()
+    if infJumpEnabled then
+        local character = player.Character
+        if character and character:FindFirstChildOfClass("Humanoid") then
+            local hum = character:FindFirstChildOfClass("Humanoid")
+            hum.UseJumpPower = true
+            hum.JumpPower = tonumber(settings.jumpPower) or 50
+            hum:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end
+end)
 
--- Control buttons
-local minBtn = Instance.new("TextButton")
-minBtn.Size = UDim2.new(0, 30, 0, 30)
-minBtn.Position = UDim2.new(1, -60, 0, 0)
-minBtn.Text = "-"
-minBtn.TextScaled = true
-minBtn.Font = Enum.Font.GothamBold
-minBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 200)
-minBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-minBtn.Parent = main
-Instance.new("UICorner", minBtn).CornerRadius = UDim.new(0, 8)
-minBtn.ZIndex = 2
+-- Anti Clip Function
+local function setAntiClip(state)
+    local character = player.Character
+    if character then
+        local hrp = character:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            hrp.CanCollide = not state
+        end
+    end
+end
 
-local closeBtn = Instance.new("TextButton")
-closeBtn.Size = UDim2.new(0, 30, 0, 30)
-closeBtn.Position = UDim2.new(1, -30, 0, 0)
-closeBtn.Text = "X"
-closeBtn.TextScaled = true
-closeBtn.Font = Enum.Font.GothamBold
-closeBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
-closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeBtn.Parent = main
-Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 8)
-closeBtn.ZIndex = 2
+-- Update Anti Clip on character spawn
+local function onCharacterAdded(char)
+    local hum = char:WaitForChild("Humanoid")
+    if speedEnabled then
+        hum.WalkSpeed = tonumber(settings.speed) or 16
+    else
+        hum.WalkSpeed = 16
+    end
+    -- Apply anti clip state on respawn
+    setAntiClip(antiClipEnabled)
+end
+player.CharacterAdded:Connect(onCharacterAdded)
 
--- Feature controls
-local speedBtn = Instance.new("TextButton")
-speedBtn.Size = UDim2.new(1, -20, 0, 40)
-speedBtn.Position = UDim2.new(0, 10, 0, 40)
-speedBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 180)
-speedBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-speedBtn.Text = "Speed: OFF"
-speedBtn.TextScaled = true
-speedBtn.Font = Enum.Font.GothamBold
-speedBtn.Parent = main
-Instance.new("UICorner", speedBtn).CornerRadius = UDim.new(0, 8)
+-- Create GUI (Persistent)
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.ResetOnSpawn = false
+ScreenGui.IgnoreGuiInset = true
+ScreenGui.Parent = player:WaitForChild("PlayerGui")
 
-local speedBox = Instance.new("TextBox")
-speedBox.Size = UDim2.new(1, -20, 0, 30)
-speedBox.Position = UDim2.new(0, 10, 0, 85)
-speedBox.BackgroundColor3 = Color3.fromRGB(100, 0, 150)
-speedBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-speedBox.Text = tostring(cfg.speed)
-speedBox.TextScaled = true
-speedBox.Font = Enum.Font.GothamBold
-speedBox.Parent = main
-Instance.new("UICorner", speedBox).CornerRadius = UDim.new(0, 8)
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 250, 0, 280) -- tambah tinggi untuk anti clip button
+MainFrame.Position = UDim2.new(0.5, -125, 0.5, -140)
+MainFrame.BackgroundColor3 = Color3.fromRGB(80, 0, 120)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
-local jumpBtn = Instance.new("TextButton")
-jumpBtn.Size = UDim2.new(1, -20, 0, 40)
-jumpBtn.Position = UDim2.new(0, 10, 0, 125)
-jumpBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 180)
-jumpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-jumpBtn.Text = "Inf Jump: OFF"
-jumpBtn.TextScaled = true
-jumpBtn.Font = Enum.Font.GothamBold
-jumpBtn.Parent = main
-Instance.new("UICorner", jumpBtn).CornerRadius = UDim.new(0, 8)
+local TitleBar = Instance.new("TextLabel")
+TitleBar.Size = UDim2.new(1, -60, 0, 30)
+TitleBar.BackgroundTransparency = 1
+TitleBar.Text = "Speed & Jump Control"
+TitleBar.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleBar.TextScaled = true
+TitleBar.Font = Enum.Font.GothamBold
+TitleBar.Parent = MainFrame
 
-local jumpBox = Instance.new("TextBox")
-jumpBox.Size = UDim2.new(1, -20, 0, 30)
-jumpBox.Position = UDim2.new(0, 10, 0, 170)
-jumpBox.BackgroundColor3 = Color3.fromRGB(100, 0, 150)
-jumpBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-jumpBox.Text = tostring(cfg.jump)
-jumpBox.TextScaled = true
-jumpBox.Font = Enum.Font.GothamBold
-jumpBox.Parent = main
-Instance.new("UICorner", jumpBox).CornerRadius = UDim.new(0, 8)
+local MinBtn = Instance.new("TextButton")
+MinBtn.Size = UDim2.new(0, 30, 0, 30)
+MinBtn.Position = UDim2.new(1, -60, 0, 0)
+MinBtn.Text = "-"
+MinBtn.TextScaled = true
+MinBtn.Font = Enum.Font.GothamBold
+MinBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 200)
+MinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinBtn.Parent = MainFrame
+Instance.new("UICorner", MinBtn).CornerRadius = UDim.new(0, 8)
+MinBtn.ZIndex = 2
 
-local espBtn = Instance.new("TextButton")
-espBtn.Size = UDim2.new(1, -20, 0, 40)
-espBtn.Position = UDim2.new(0, 10, 0, 210)
-espBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 180)
-espBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-espBtn.Text = "ESP: " .. (espActive and "ON" or "OFF")
-espBtn.TextScaled = true
-espBtn.Font = Enum.Font.GothamBold
-espBtn.Parent = main
-Instance.new("UICorner", espBtn).CornerRadius = UDim.new(0, 8)
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+CloseBtn.Position = UDim2.new(1, -30, 0, 0)
+CloseBtn.Text = "X"
+CloseBtn.TextScaled = true
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.Parent = MainFrame
+Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 8)
+CloseBtn.ZIndex = 2
 
-local clipBtn = Instance.new("TextButton")
-clipBtn.Size = UDim2.new(1, -20, 0, 40)
-clipBtn.Position = UDim2.new(0, 10, 0, 255)
-clipBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 180)
-clipBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-clipBtn.Text = "Anti-Clip: " .. (clipActive and "ON" or "OFF")
-clipBtn.TextScaled = true
-clipBtn.Font = Enum.Font.GothamBold
-clipBtn.Parent = main
-Instance.new("UICorner", clipBtn).CornerRadius = UDim.new(0, 8)
+local SpeedBtn = Instance.new("TextButton")
+SpeedBtn.Size = UDim2.new(1, -20, 0, 40)
+SpeedBtn.Position = UDim2.new(0, 10, 0, 40)
+SpeedBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 180)
+SpeedBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedBtn.Text = "Speed: OFF"
+SpeedBtn.TextScaled = true
+SpeedBtn.Font = Enum.Font.GothamBold
+SpeedBtn.Parent = MainFrame
+Instance.new("UICorner", SpeedBtn).CornerRadius = UDim.new(0, 8)
 
-local afkBtn = Instance.new("TextButton")
-afkBtn.Size = UDim2.new(1, -20, 0, 40)
-afkBtn.Position = UDim2.new(0, 10, 0, 300)
-afkBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 180)
-afkBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-afkBtn.Text = "Anti-AFK: " .. (afkActive and "ON" or "OFF")
-afkBtn.TextScaled = true
-afkBtn.Font = Enum.Font.GothamBold
-afkBtn.Parent = main
-Instance.new("UICorner", afkBtn).CornerRadius = UDim.new(0, 8)
+local SpeedBox = Instance.new("TextBox")
+SpeedBox.Size = UDim2.new(1, -20, 0, 30)
+SpeedBox.Position = UDim2.new(0, 10, 0, 85)
+SpeedBox.BackgroundColor3 = Color3.fromRGB(100, 0, 150)
+SpeedBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedBox.Text = tostring(settings.speed)
+SpeedBox.TextScaled = true
+SpeedBox.Font = Enum.Font.GothamBold
+SpeedBox.Parent = MainFrame
+Instance.new("UICorner", SpeedBox).CornerRadius = UDim.new(0, 8)
 
--- Control logic
-speedBtn.MouseButton1Click:Connect(function()
-    local char = plr.Character or plr.CharacterAdded:Wait()
+local JumpBtn = Instance.new("TextButton")
+JumpBtn.Size = UDim2.new(1, -20, 0, 40)
+JumpBtn.Position = UDim2.new(0, 10, 0, 125)
+JumpBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 180)
+JumpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+JumpBtn.Text = "Inf Jump: OFF"
+JumpBtn.TextScaled = true
+JumpBtn.Font = Enum.Font.GothamBold
+JumpBtn.Parent = MainFrame
+Instance.new("UICorner", JumpBtn).CornerRadius = UDim.new(0, 8)
+
+local JumpBox = Instance.new("TextBox")
+JumpBox.Size = UDim2.new(1, -20, 0, 30)
+JumpBox.Position = UDim2.new(0, 10, 0, 170)
+JumpBox.BackgroundColor3 = Color3.fromRGB(100, 0, 150)
+JumpBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+JumpBox.Text = tostring(settings.jumpPower)
+JumpBox.TextScaled = true
+JumpBox.Font = Enum.Font.GothamBold
+JumpBox.Parent = MainFrame
+Instance.new("UICorner", JumpBox).CornerRadius = UDim.new(0, 8)
+
+-- Anti Clip Button
+local AntiClipBtn = Instance.new("TextButton")
+AntiClipBtn.Size = UDim2.new(1, -20, 0, 40)
+AntiClipBtn.Position = UDim2.new(0, 10, 0, 210)
+AntiClipBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 180)
+AntiClipBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+AntiClipBtn.Text = "Anti Clip: OFF"
+AntiClipBtn.TextScaled = true
+AntiClipBtn.Font = Enum.Font.GothamBold
+AntiClipBtn.Parent = MainFrame
+Instance.new("UICorner", AntiClipBtn).CornerRadius = UDim.new(0, 8)
+
+-- Speed Toggle Logic
+SpeedBtn.MouseButton1Click:Connect(function()
+    local char = player.Character or player.CharacterAdded:Wait()
     local hum = char:FindFirstChildOfClass("Humanoid")
     if not hum then return end
 
-    speedActive = not speedActive
-    if speedActive then
-        hum.WalkSpeed = tonumber(cfg.speed) or 16
-        speedBtn.Text = "Speed: ON"
+    speedEnabled = not speedEnabled
+    if speedEnabled then
+        hum.WalkSpeed = tonumber(settings.speed) or 16
+        SpeedBtn.Text = "Speed: ON"
     else
         hum.WalkSpeed = 16
-        speedBtn.Text = "Speed: OFF"
+        SpeedBtn.Text = "Speed: OFF"
     end
 end)
 
-speedBox.FocusLost:Connect(function()
-    local val = tonumber(speedBox.Text)
+-- Save Speed Setting
+SpeedBox.FocusLost:Connect(function()
+    local val = tonumber(SpeedBox.Text)
     if val and val >= 16 and val <= 100000 then
-        cfg.speed = val
-        saveConfig(cfg)
-        if speedActive then
-            local char = plr.Character or plr.CharacterAdded:Wait()
+        settings.speed = val
+        saveSettings(settings)
+        if speedEnabled then
+            local char = player.Character or player.CharacterAdded:Wait()
             local hum = char:FindFirstChildOfClass("Humanoid")
             if hum then hum.WalkSpeed = val end
         end
     else
-        speedBox.Text = tostring(cfg.speed)
+        SpeedBox.Text = tostring(settings.speed)
     end
 end)
 
-jumpBtn.MouseButton1Click:Connect(function()
-    jumpActive = not jumpActive
-    jumpBtn.Text = jumpActive and "Inf Jump: ON" or "Inf Jump: OFF"
+-- Jump Toggle Logic
+JumpBtn.MouseButton1Click:Connect(function()
+    infJumpEnabled = not infJumpEnabled
+    JumpBtn.Text = infJumpEnabled and "Inf Jump: ON" or "Inf Jump: OFF"
 end)
 
-jumpBox.FocusLost:Connect(function()
-    local val = tonumber(jumpBox.Text)
+-- Save Jump Power Setting
+JumpBox.FocusLost:Connect(function()
+    local val = tonumber(JumpBox.Text)
     if val and val >= 50 and val <= 1000 then
-        cfg.jump = val
-        saveConfig(cfg)
+        settings.jumpPower = val
+        saveSettings(settings)
     else
-        jumpBox.Text = tostring(cfg.jump)
+        JumpBox.Text = tostring(settings.jumpPower)
     end
 end)
 
-espBtn.MouseButton1Click:Connect(function()
-    espActive = not espActive
-    espBtn.Text = "ESP: " .. (espActive and "ON" or "OFF")
-    toggleESP(espActive)
+-- Anti Clip Toggle Logic
+AntiClipBtn.MouseButton1Click:Connect(function()
+    antiClipEnabled = not antiClipEnabled
+    AntiClipBtn.Text = antiClipEnabled and "Anti Clip: ON" or "Anti Clip: OFF"
+    setAntiClip(antiClipEnabled)
 end)
 
-clipBtn.MouseButton1Click:Connect(function()
-    clipActive = not clipActive
-    cfg.noClip = clipActive
-    saveConfig(cfg)
-    clipBtn.Text = "Anti-Clip: " .. (clipActive and "ON" or "OFF")
-    
-    if clipActive and plr.Character then
-        setupClipProtection(plr.Character)
-    end
-end)
-
-afkBtn.MouseButton1Click:Connect(function()
-    afkActive = not afkActive
-    cfg.antiAFK = afkActive
-    saveConfig(cfg)
-    afkBtn.Text = "Anti-AFK: " .. (afkActive and "ON" or "OFF")
-end)
-
--- UI controls
+-- Minimize Logic
 local minimized = false
-local uiElements = {speedBtn, speedBox, jumpBtn, jumpBox, espBtn, clipBtn, afkBtn}
+local elementsToToggle = {SpeedBtn, SpeedBox, JumpBtn, JumpBox, AntiClipBtn}
 
-minBtn.MouseButton1Click:Connect(function()
+MinBtn.MouseButton1Click:Connect(function()
     minimized = not minimized
-    for _, el in ipairs(uiElements) do
-        el.Visible = not minimized
+    for _, obj in ipairs(elementsToToggle) do
+        obj.Visible = not minimized
     end
-    main.Size = minimized and UDim2.new(0, 250, 0, 30) or UDim2.new(0, 250, 0, 340)
-    minBtn.Text = minimized and "+" or "-"
+    MainFrame.Size = minimized and UDim2.new(0, 250, 0, 30) or UDim2.new(0, 250, 0, 280)
+    MinBtn.Text = minimized and "+" or "-"
 end)
 
-closeBtn.MouseButton1Click:Connect(function()
-    ui:Destroy()
+-- Close Logic
+CloseBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
 end)
 
--- Respawn handler
-plr.CharacterAdded:Connect(function(char)
-    local hum = char:WaitForChild("Humanoid")
-    if speedActive then
-        hum.WalkSpeed = tonumber(cfg.speed) or 16
-    else
-        hum.WalkSpeed = 16
-    end
-    
-    if clipActive then
-        setupClipProtection(char)
-    end
-end)
-
--- AFK prevention loop
-while true do
-    preventAFK()
-    task.wait(1)
+-- Initial apply anti clip if needed on current character
+if player.Character then
+    setAntiClip(antiClipEnabled)
 end
