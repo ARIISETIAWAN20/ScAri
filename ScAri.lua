@@ -1,6 +1,7 @@
 -- Speed & Infinite Jump GUI Script for Roblox (Delta Executor Compatible)
 -- Default speed: 16, Max speed: 100000
--- Features: Adjustable Speed & Inf Jump Power (saved in ARI HUB.json), Toggle Speed, Toggle Infinite Jump, Minimize/Maximize, Close GUI, Persistent across respawn
+-- Default JumpPower: 0 (Roblox default), Max JumpPower: 100
+-- Features: Adjustable Speed & JumpPower, Toggle Speed, Toggle Infinite Jump, Minimize/Maximize, Close GUI, Persistent across respawn
 
 local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
@@ -13,7 +14,7 @@ local function loadSettings()
     if isfile(fileName) then
         return HttpService:JSONDecode(readfile(fileName))
     else
-        return {speed = 16, jumpPower = nil}
+        return {speed = 16, jumpPower = 0}
     end
 end
 
@@ -34,9 +35,7 @@ UIS.JumpRequest:Connect(function()
         local hum = character and character:FindFirstChildOfClass("Humanoid")
         if hum then
             hum.UseJumpPower = true
-            if settings.jumpPower then
-                hum.JumpPower = tonumber(settings.jumpPower)
-            end
+            hum.JumpPower = tonumber(settings.jumpPower) or 0
             hum:ChangeState("Jumping")
         end
     end
@@ -130,13 +129,13 @@ JumpBtn.Font = Enum.Font.GothamBold
 JumpBtn.Parent = MainFrame
 Instance.new("UICorner", JumpBtn).CornerRadius = UDim.new(0, 8)
 
--- Jump Power TextBox (kosong jika nil)
+-- Jump Power TextBox
 local JumpBox = Instance.new("TextBox")
 JumpBox.Size = UDim2.new(1, -20, 0, 30)
 JumpBox.Position = UDim2.new(0, 10, 0, 170)
 JumpBox.BackgroundColor3 = Color3.fromRGB(100, 0, 150)
 JumpBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-JumpBox.Text = settings.jumpPower and tostring(settings.jumpPower) or ""
+JumpBox.Text = tostring(settings.jumpPower)
 JumpBox.TextScaled = true
 JumpBox.Font = Enum.Font.GothamBold
 JumpBox.Parent = MainFrame
@@ -183,14 +182,11 @@ end)
 -- Save Jump Power Setting
 JumpBox.FocusLost:Connect(function()
     local val = tonumber(JumpBox.Text)
-    if JumpBox.Text == "" then
-        settings.jumpPower = nil
-        saveSettings(settings)
-    elseif val and val >= 50 and val <= 100 then
+    if val and val >= 0 and val <= 100 then
         settings.jumpPower = val
         saveSettings(settings)
     else
-        JumpBox.Text = settings.jumpPower and tostring(settings.jumpPower) or ""
+        JumpBox.Text = tostring(settings.jumpPower)
     end
 end)
 
