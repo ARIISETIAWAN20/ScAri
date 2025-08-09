@@ -1,6 +1,5 @@
--- ARI HUB Key System with 11-hour cache
--- Keys: HELLO ARI, HELLO WORLD, HELLO BRO
--- Saves last valid key usage time in KEY ARI HUB.json
+-- ARI HUB Key System with lifetime key support (HELLO ARI)
+-- Keys: HELLO ARI (lifetime), HELLO WORLD, HELLO BRO (11-hour cache)
 
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
@@ -9,7 +8,6 @@ local player = Players.LocalPlayer
 local keyFile = "KEY ARI HUB.json"
 local savedData = nil
 
--- Load saved data if exists
 if isfile(keyFile) then
     local data = readfile(keyFile)
     pcall(function()
@@ -17,16 +15,28 @@ if isfile(keyFile) then
     end)
 end
 
--- Check if last usage was within 11 hours
 local function hasValidSession()
     if savedData and savedData.key and savedData.lastUsed then
+        if savedData.key == "HELLO ARI" then
+            return true -- Lifetime key
+        end
         local elapsed = os.time() - savedData.lastUsed
         return elapsed <= (11 * 3600)
+    elseif savedData and savedData.key == "HELLO ARI" then
+        return true
     end
     return false
 end
 
--- GUI Setup
+local function loadMainScript()
+    local success, err = pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/ARIISETIAWAN20/ScAri/main/ScAri.lua"))()
+    end)
+    if not success then
+        warn("Failed to load main script:", err)
+    end
+end
+
 local function createKeyGui()
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.ResetOnSpawn = false
@@ -99,12 +109,16 @@ local function createKeyGui()
         end
 
         if validateKey(inputKey) then
-            writefile(keyFile, HttpService:JSONEncode({key = inputKey, lastUsed = os.time()}))
+            local saveData = { key = inputKey }
+            if inputKey ~= "HELLO ARI" then
+                saveData.lastUsed = os.time()
+            end
+            writefile(keyFile, HttpService:JSONEncode(saveData))
             Status.TextColor3 = Color3.fromRGB(100, 255, 100)
             Status.Text = "Access Granted!"
             wait(0.5)
             ScreenGui:Destroy()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/ARIISETIAWAN20/ScAri/main/ScAri.lua"))()
+            loadMainScript()
         else
             Status.TextColor3 = Color3.fromRGB(255, 100, 100)
             Status.Text = "Invalid Key!"
@@ -112,9 +126,8 @@ local function createKeyGui()
     end)
 end
 
--- Main Execution
 if hasValidSession() then
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/ARIISETIAWAN20/ScAri/main/ScAri.lua"))()
+    loadMainScript()
 else
     createKeyGui()
 end
