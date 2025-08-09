@@ -5,6 +5,7 @@
 local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
 local player = Players.LocalPlayer
+local UIS = game:GetService("UserInputService")
 
 -- File Handling
 local fileName = "ARI HUB.json"
@@ -12,7 +13,7 @@ local function loadSettings()
     if isfile(fileName) then
         return HttpService:JSONDecode(readfile(fileName))
     else
-        return {speed = 16, jumpPower = 50}
+        return {speed = 16, jumpPower = nil}
     end
 end
 
@@ -25,16 +26,18 @@ local settings = loadSettings()
 -- Variables
 local speedEnabled = false
 local infJumpEnabled = false
-local UIS = game:GetService("UserInputService")
 
 -- Infinite Jump Handler
 UIS.JumpRequest:Connect(function()
     if infJumpEnabled then
         local character = player.Character
-        if character and character:FindFirstChildOfClass("Humanoid") then
-            character:FindFirstChildOfClass("Humanoid").UseJumpPower = true
-            character:FindFirstChildOfClass("Humanoid").JumpPower = tonumber(settings.jumpPower) or 50
-            character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+        local hum = character and character:FindFirstChildOfClass("Humanoid")
+        if hum then
+            hum.UseJumpPower = true
+            if settings.jumpPower then
+                hum.JumpPower = tonumber(settings.jumpPower)
+            end
+            hum:ChangeState("Jumping")
         end
     end
 end)
@@ -127,13 +130,13 @@ JumpBtn.Font = Enum.Font.GothamBold
 JumpBtn.Parent = MainFrame
 Instance.new("UICorner", JumpBtn).CornerRadius = UDim.new(0, 8)
 
--- Jump Power TextBox
+-- Jump Power TextBox (kosong jika nil)
 local JumpBox = Instance.new("TextBox")
 JumpBox.Size = UDim2.new(1, -20, 0, 30)
 JumpBox.Position = UDim2.new(0, 10, 0, 170)
 JumpBox.BackgroundColor3 = Color3.fromRGB(100, 0, 150)
 JumpBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-JumpBox.Text = tostring(settings.jumpPower)
+JumpBox.Text = settings.jumpPower and tostring(settings.jumpPower) or ""
 JumpBox.TextScaled = true
 JumpBox.Font = Enum.Font.GothamBold
 JumpBox.Parent = MainFrame
@@ -180,11 +183,14 @@ end)
 -- Save Jump Power Setting
 JumpBox.FocusLost:Connect(function()
     local val = tonumber(JumpBox.Text)
-    if val and val >= 50 and val <= 1000 then
+    if JumpBox.Text == "" then
+        settings.jumpPower = nil
+        saveSettings(settings)
+    elseif val and val >= 50 and val <= 100 then
         settings.jumpPower = val
         saveSettings(settings)
     else
-        JumpBox.Text = tostring(settings.jumpPower)
+        JumpBox.Text = settings.jumpPower and tostring(settings.jumpPower) or ""
     end
 end)
 
