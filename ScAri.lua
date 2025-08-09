@@ -1,5 +1,5 @@
 -- ARI HUB Script
--- By [Your Name]
+-- By [Mang Ari]
 
 -- Services
 local Players = game:GetService("Players")
