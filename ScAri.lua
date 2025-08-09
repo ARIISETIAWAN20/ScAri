@@ -1,1 +1,407 @@
-local a=string.byte;local f=string.char;local c=string.sub;local u=table.concat;local h=math.ldexp;local D=getfenv or function()return _ENV end;local l=setmetatable;local s=select;local r=unpack;local i=tonumber;local function G(d)local e,n,o="","",{}local t=256;local a={}for l=0,t-1 do a[l]=f(l)end;local l=1;local function r()local e=i(c(d,l,l),36)l=l+1;local n=i(c(d,l,l+e-1),36)l=l+e;return n end;e=f(r())o[1]=e;while l<#d do local l=r()if a[l]then n=a[l]else n=e..c(e,1,1)end;a[t]=e..c(n,1,1)o[#o+1],e,t=n,n,t+1 end;return table.concat(o)end;local i=G('23F23H27523G23J27523H26G26I26Q26A23G23I27925S26Q26C25X26Q26O26K27E23K27925V26O26Q26D27M26K26I26G27P23G23G27925W26I26C23G23L27925G26O26G26Q26K27E23N27925J26K26C26P26Q26I26J28027925T26G26I26D26O26K23G23M27925Y27M26D23G23Q27925N26K26J26K26O26Q28W28Y27E23P27925M26I26J26G25S26Q26I26O26D27E23R27925H26Q26J25X26O26G26I26J27E23O27929H26Q26C25M26K26G26I26C27E23D27925K26Q26D26O26K26G25Z26G26I26D26P27E29Z27525L26G26J26K25X26I26O26C28F27925I26K26J2A527529U26Q26J25T26K26G26C29B27525X26G26P26G26O26J27E29Y27525O26Q26C26J26Q26K26G2AX23H25P26O26J26D2B12752B326I26A26K26O26I23G23827925D26I26O26P2BL2BN26O25D26K26C26P26K26G26J26D28E28G27525E26Q26O26P2BL26P26Q25D26G26J26C26Q26O26K2C327925C26I26C2C82CA2CC27E2B627525F26G26J2BZ26Q2C12C32C52752C72C92CB2CD2CF2CH2CJ2CL2CN2CP2CR2CT2CV2CX2CZ2D12D32D52D72D92DB2DD2DF2DH2DJ2DL2DN2DP2DR2DT2DV2DX2DZ2E12E32E52E72E92EB2ED2EF2EH2EJ2EL2EN2EP2ER2ET2EV2EX2EZ2F12F32F52F72F92FB2FD2FF2FH2FJ2FL2FN2FP2FR2FT2FV2FX2FZ2G12G32G52G72G92GB2GD2GF2GH2GJ2GL2GN2GP2GR2GT2GV2GX2GZ2H12H32H52H72H92HB2HD2HF2HH2HJ2HL2HN2HP2HR2HT2HV2HX2HZ2I12I32I52I72I92IB2ID2IF2IH2IJ2IL2IN2IP2IR2IT2IV2IX2IZ2J12J32J52J72J92JB2JD2JF2JH2JJ2JL2JN2JP2JR2JT2JV2JX2JZ2K12K32K52K72K92KB2KD2KF2KH2KJ2KL2KN2KP2KR2KT2KV2KW275');local o=bit and bit.bxor or function(l,e)local n,o=1,0 while l>0 and e>0 do local c,a=l%2,e%2 if c~=a then o=o+n end l,e,n=(l-c)/2,(e-a)/2,n*2 end if l<e then l=e end while l>0 do local e=l%2 if e>0 then o=o+n end l,n=(l-e)/2,n*2 end return o end local function e(e,l,n)if n then local l=(e/2^(l-1))%2^((n-1)-(l-1)+1);return l-l%1;else local l=2^(l-1);return(e%(l+l)>=l)and 1 or 0;end;end;local l=1;local function n()local e,n,c,a=a(i,l,l+3);e=o(e,154)n=o(n,154)c=o(c,154)a=o(a,154)l=l+4;return(a*16777216)+(c*65536)+(n*256)+e;end;local function d()local e=o(a(i,l,l),154);l=l+1;return e;end;local function t()local n,e=a(i,l,l+2);n=o(n,154)e=o(e,154)l=l+2;return(e*256)+n;end;local function G()local o=n();local l=n();local c=1;local o=(e(l,1,20)*(2^32))+o;local n=e(l,21,31);local l=((-1)^e(l,32));if(n==0)then if(o==0)then return l*0;else n=1;c=0;end;elseif(n==2047)then return(o==0)and(l*(1/0))or(l*(0/0));end;return h(l,n-1023)*(c+(o/(2^52)));end;local h=n;local function B(e)local n;if(not e)then e=h();if(e==0)then return'';end;end;n=c(i,l,l+e-1);l=l+e;local e={}for l=1,#n do e[l]=f(o(a(c(n,l,l)),154))end return u(e);end;local l=n;local function u(...)return{...},s('#',...)end;local function i()local f={};local c={};local l={};local a={f,c,nil,l};local l=n()local o={}for e=1,l do local n=d();local l;if(n==3)then l=(d()~=0);elseif(n==1)then l=G();elseif(n==2)then l=B();end;o[e]=l;end;a[2]=o;for l=1,n()do c[l-1]=i();end;for a=1,n()do local c=o(n(),5);local n=o(n(),52);local o=e(c,1,2);local l=e(n,1,11);local l={l,e(c,3,11),nil,nil,n};if(o==0)then l[3]=e(c,12,20);l[5]=e(c,21,29);elseif(o==1)then l[3]=e(n,12,33);elseif(o==2)then l[3]=e(n,12,32)-1048575;elseif(o==3)then l[3]=e(n,12,32)-1048575;l[5]=e(c,21,29);end;f[a]=l;end end;return a;end;local function f(l,e,h)local e=l[1];local n=l[2];local o=l[3];local l=l[4];return function(...)local c=e;local a=n;local G=o;local n=l;local l=u local e=1;local d=-1;local t={};local i={...};local u=s('#',...)-1;local l={};local o={};for l=0,u do if(l>=n)then t[l-n]=i[l+1];else o[l]=i[l+1];end;end;local l=u-n+1 local l;local n;while true do l=c[e];n=l[1];if n<=8 then if n<=3 then if n<=1 then if n>0 then o[l[2]]=h[a[l[3]]];else local n=l[2];local c={};local e=0;local a=n+l[3]-1;for l=n+1,a do e=e+1;c[e]=o[l];end;local c={o[n](r(c,1,a-n))};local l=n+l[5]-2;e=0;for l=n,l do e=e+1;o[l]=c[e];end;d=l;end;elseif n>2 then o[l[2]]=o[l[3]][a[l[5]]];else o[l[2]]=a[l[3]];end;elseif n<=5 then if n>4 then local n=l[2];local a={};local e=0;local c=d;for l=n+1,c do e=e+1;a[e]=o[l];end;local c={o[n](r(a,1,c-n))};local l=n+l[5]-2;e=0;for l=n,l do e=e+1;o[l]=c[e];end;d=l;else do return end;end;elseif n<=6 then o[l[2]][a[l[3]]]=o[l[5]];elseif n>7 then e=e+l[3];else local n=l[2];local c=l[5];local l=n+2;local a={o[n](o[n+1],o[l])};for e=1,c do o[l+e]=a[e];end;local n=o[n+3];if n then o[l]=n else e=e+1;end;end;elseif n<=13 then if n<=10 then if n>9 then local n=l[2];local a=l[5];local l=n+2;local c={o[n](o[n+1],o[l])};for e=1,a do o[l+e]=c[e];end;local n=o[n+3];if n then o[l]=n else e=e+1;end;else o[l[2]]=o[l[3]];end;elseif n<=11 then local n;local u,n;local i;local s;local t;local B;local n;o[l[2]]=h[a[l[3]]];e=e+1;l=c[e];o[l[2]]=h[a[l[3]]];e=e+1;l=c[e];n=l[2];B=o[l[3]];o[n+1]=B;o[n]=B[a[l[5]]];e=e+1;l=c[e];o[l[2]]=a[l[3]];e=e+1;l=c[e];n=l[2];t={};s=0;i=n+l[3]-1;for l=n+1,i do s=s+1;t[s]=o[l];end;u,i=l(o[n](r(t,1,i-n)));i=i+n-1;s=0;for l=n,i do s=s+1;o[l]=u[s];end;d=i;e=e+1;l=c[e];n=l[2];t={};s=0;i=d;for l=n+1,i do s=s+1;t[s]=o[l];end;u={o[n](r(t,1,i-n))};i=n+l[5]-2;s=0;for l=n,i do s=s+1;o[l]=u[s];end;d=i;e=e+1;l=c[e];o[l[2]]();d=n;e=e+1;l=c[e];do return end;elseif n>12 then o[l[2]]();d=A;else local e=l[2];local c,n={o[e]()};local n=e+l[5]-2;local l=0;for e=e,n do l=l+1;o[e]=c[l];end;d=n;end;elseif n<=15 then if n>14 then local n=l[2];local a={};local e=0;local c=d;for l=n+1,c do e=e+1;a[e]=o[l];end;local c={o[n](r(a,1,c-n))};local l=n+l[5]-2;e=0;for l=n,l do e=e+1;o[l]=c[e];end;d=l;else o[l[2]][a[l[3]]]=o[l[5]];end;elseif n<=16 then o[l[2]]=a[l[3]];elseif n>17 then o[l[2]]=o[l[3]][a[l[5]]];else o[l[2]]=h[a[l[3]]];end;e=e+1;end;end;end;return f(i(),{},D())();end)('25G25H27525I25J27523H25D25J26Q26P26K26G25I25F27926O26J26C26D26Q26K2BK25I25E27925W26G26I26P27E27E25I25C27925Y26K26O26I26K26Q26J27M27O27Q25I27923H25N25I25K27925X26Q26J26O26G26I26J28A28C28E25I25N27925M26Q26C26J25X26K26O26D26P27E25J27925L26I26P26Q26K25I25H27925O26K26J26D25I25O27925G26Q26O26P2A42A62A82AA25I25P27925P26G26J26C25T26K26I26O26D25I25Q27925Q26Q26D26O26K26G25V26G26I26D26P25I25M2B92BB25T26Q26I26C2BI25I25L27925N26O26D26J26Q26K26G25S26G26I26D2C327925R26Q26C26J25S26K26I26C2CD25I25I27925K26G26I26A26K26O26I25I25D27925J26I26O26P2D52D72D92DB2DD2DF2DH2DJ2DL2DN2DP2DR2DT2DV2DX2DZ2E12E32E52E72E92EB2ED2EF2EH2EJ2EL2EN2EP2ER2ET2EV2EX2EZ2F12F32F52F72F92FB2FD2FF2FH2FJ2FL2FN2FP2FR2FT2FV2FX2FZ2G12G32G52G72G92GB2GD2GF2GH2GJ2GL2GN2GP2GR2GT2GV2GX2GZ2H12H32H52H72H92HB2HD2HF2HH2HJ2HL2HN2HP2HR2HT2HV2HX2HZ2I12I32I52I72I92IB2ID2IF2IH2IJ2IL2IN2IP2IR2IT2IV2IX2IZ2J12J32J52J72J92JB2JD2JF2JH2JJ2JL2JN2JP2JR2JT2JV2JX2JZ2K12K32K52K72K92KB2KD2KF2KH2KJ2KL2KN2KP2KR2KT2KV2KW275');local o=bit and bit.bxor or function(l,e)local n,o=1,0 while l>0 and e>0 do local c,a=l%2,e%2 if c~=a then o=o+n end l,e,n=(l-c)/2,(e-a)/2,n*2 end if l<e then l=e end while l>0 do local e=l%2 if e>0 then o=o+n end l,n=(l-e)/2,n*2 end return o end local function e(e,l,n)if n then local l=(e/2^(l-1))%2^((n-1)-(l-1)+1);return l-l%1;else local l=2^(l-1);return(e%(l+l)>=l)and 1 or 0;end;end;local l=1;local function n()local e,n,c,a=a(i,l,l+3);e=o(e,154)n=o(n,154)c=o(c,154)a=o(a,154)l=l+4;return(a*16777216)+(c*65536)+(n*256)+e;end;local function d()local e=o(a(i,l,l),154);l=l+1;return e;end;local function t()local n,e=a(i,l,l+2);n=o(n,154)e=o(e,154)l=l+2;return(e*256)+n;end;local function G()local o=n();local l=n();local c=1;local o=(e(l,1,20)*(2^32))+o;local n=e(l,21,31);local l=((-1)^e(l,32));if(n==0)then if(o==0)then return l*0;else n=1;c=0;end;elseif(n==2047)then return(o==0)and(l*(1/0))or(l*(0/0));end;return h(l,n-1023)*(c+(o/(2^52)));end;local h=n;local function B(e)local n;if(not e)then e=h();if(e==0)then return'';end;end;n=c(i,l,l+e-1);l=l+e;local e={}for l=1,#n do e[l]=f(o(a(c(n,l,l)),154))end return u(e);end;local l=n;local function u(...)return{...},s('#',...)end;local function i()local f={};local c={};local l={};local a={f,c,nil,l};local l=n()local o={}for e=1,l do local n=d();local l;if(n==3)then l=(d()~=0);elseif(n==1)then l=G();elseif(n==2)then l=B();end;o[e]=l;end;a[2]=o;for l=1,n()do c[l-1]=i();end;for a=1,n()do local c=o(n(),5);local n=o(n(),52);local o=e(c,1,2);local l=e(n,1,11);local l={l,e(c,3,11),nil,nil,n};if(o==0)then l[3]=e(c,12,20);l[5]=e(c,21,29);elseif(o==1)then l[3]=e(n,12,33);elseif(o==2)then l[3]=e(n,12,32)-1048575;elseif(o==3)then l[3]=e(n,12,32)-1048575;l[5]=e(c,21,29);end;f[a]=l;end end;return a;end;local function f(l,e,h)local e=l[1];local n=l[2];local o=l[3];local l=l[4];return function(...)local c=e;local a=n;local G=o;local n=l;local l=u local e=1;local d=-1;local t={};local i={...};local u=s('#',...)-1;local l={};local o={};for l=0,u do if(l>=n)then t[l-n]=i[l+1];else o[l]=i[l+1];end;end;local l=u-n+1 local l;local n;while true do l=c[e];n=l[1];if n<=8 then if n<=3 then if n<=1 then if n>0 then o[l[2]]=h[a[l[3]]];else local n=l[2];local c={};local e=0;local a=n+l[3]-1;for l=n+1,a do e=e+1;c[e]=o[l];end;local c={o[n](r(c,1,a-n))};local l=n+l[5]-2;e=0;for l=n,l do e=e+1;o[l]=c[e];end;d=l;end;elseif n>2 then o[l[2]]=o[l[3]][a[l[5]]];else o[l[2]]=a[l[3]];end;elseif n<=5 then if n>4 then local n=l[2];local a={};local e=0;local c=d;for l=n+1,c do e=e+1;a[e]=o[l];end;local c={o[n](r(a,1,c-n))};local l=n+l[5]-2;e=0;for l=n,l do e=e+1;o[l]=c[e];end;d=l;else do return end;end;elseif n<=6 then o[l[2]][a[l[3]]]=o[l[5]];elseif n>7 then e=e+l[3];else local n=l[2];local c=l[5];local l=n+2;local a={o[n](o[n+1],o[l])};for e=1,c do o[l+e]=a[e];end;local n=o[n+3];if n then o[l]=n else e=e+1;end;end;elseif n<=13 then if n<=10 then if n>9 then local n=l[2];local a=l[5];local l=n+2;local c={o[n](o[n+1],o[l])};for e=1,a do o[l+e]=c[e];end;local n=o[n+3];if n then o[l]=n else e=e+1;end;else o[l[2]]=o[l[3]];end;elseif n<=11 then local n;local u,n;local i;local s;local t;local B;local n;o[l[2]]=h[a[l[3]]];e=e+1;l=c[e];o[l[2]]=h[a[l[3]]];e=e+1;l=c[e];n=l[2];B=o[l[3]];o[n+1]=B;o[n]=B[a[l[5]]];e=e+1;l=c[e];o[l[2]]=a[l[3]];e=e+1;l=c[e];n=l[2];t={};s=0;i=n+l[3]-1;for l=n+1,i do s=s+1;t[s]=o[l];end;u,i=l(o[n](r(t,1,i-n)));i=i+n-1;s=0;for l=n,i do s=s+1;o[l]=u[s];end;d=i;e=e+1;l=c[e];n=l[2];t={};s=0;i=d;for l=n+1,i do s=s+1;t[s]=o[l];end;u={o[n](r(t,1,i-n))};i=n+l[5]-2;s=0;for l=n,i do s=s+1;o[l]=u[s];end;d=i;e=e+1;l=c[e];o[l[2]]();d=n;e=e+1;l=c[e];do return end;elseif n>12 then o[l[2]]();d=A;else local e=l[2];local c,n={o[e]()};local n=e+l[5]-2;local l=0;for e=e,n do l=l+1;o[e]=c[l];end;d=n;end;elseif n<=15 then if n>14 then local n=l[2];local a={};local e=0;local c=d;for l=n+1,c do e=e+1;a[e]=o[l];end;local c={o[n](r(a,1,c-n))};local l=n+l[5]-2;e=0;for l=n,l do e=e+1;o[l]=c[e];end;d=l;else o[l[2]][a[l[3]]]=o[l[5]];end;elseif n<=16 then o[l[2]]=a[l[3]];elseif n>17 then o[l[2]]=o[l[3]][a[l[5]]];else o[l[2]]=h[a[l[3]]];end;e=e+1;end;end;end;return f(i(),{},D())();end)('25G25H27525I25J27523H25D25J26Q26P26K26G25I25F27926O26J26C26D26Q26K2BK25I25E27925W26G26I26P27E27E25I25C27925Y26K26O26I26K26Q26J27M27O27Q25I27923H25N25I25K27925X26Q26J26O26G26I26J28A28C28E25I25N27925M26Q26C26J25X26K26O26D26P27E25J27925L26I26P26Q26K25I25H27925O26K26J26D25I25O27925G26Q26O26P2A42A62A82AA25I25P27925P26G26J26C25T26K26I26O26D25I25Q27925Q26Q26D26O26K26G25V26G26I26D26P25I25M2B92BB25T26Q26I26C2BI25I25L27925N26O26D26J26Q26K26G25S26G26I26D2C327925R26Q26C26J25S26K26I26C2CD25I25I27925K26G26I26A26K26O26I25I25D27925J26I26O26P2D52D72D92DB2DD2DF2DH2DJ2DL2DN2DP2DR2DT2DV2DX2DZ2E12E32E52E72E92EB2ED2EF2EH2EJ2EL2EN2EP2ER2ET2EV2EX2EZ2F12F32F52F72F92FB2FD2FF2FH2FJ2FL2FN2FP2FR2FT2FV2FX2FZ2G12G32G52G72G92GB2GD2GF2GH2GJ2GL2GN2GP2GR2GT2GV2GX2GZ2H12H32H52H72H92HB2HD2HF2HH2HJ2HL2HN2HP2HR2HT2HV2HX2HZ2I12I32I52I72I92IB2ID2IF2IH2IJ2IL2IN2IP2IR2IT2IV2IX2IZ2J12J32J52J72J92JB2JD2JF2JH2JJ2JL2JN2JP2JR2JT2JV2JX2JZ2K12K32K52K72K92KB2KD2KF2KH2KJ2KL2KN2KP2KR2KT2KV2KW275');local o=bit and bit.bxor or function(l,e)local n,o=1,0 while l>0 and e>0 do local c,a=l%2,e%2 if c~=a then o=o+n end l,e,n=(l-c)/2,(e-a)/2,n*2 end if l<e then l=e end while l>0 do local e=l%2 if e>0 then o=o+n end l,n=(l-e)/2,n*2 end return o end local function e(e,l,n)if n then local l=(e/2^(l-1))%2^((n-1)-(l-1)+1);return l-l%1;else local l=2^(l-1);return(e%(l+l)>=l)and 1 or 0;end;end;local l=1;local function n()local e,n,c,a=a(i,l,l+3);e=o(e,154)n=o(n,154)c=o(c,154)a=o(a,154)l=l+4;return(a*16777216)+(c*65536)+(n*256)+e;end;local function d()local e=o(a(i,l,l),154);l=l+1;return e;end;local function t()local n,e=a(i,l,l+2);n=o(n,154)e=o(e,154)l=l+2;return(e*256)+n;end;local function G()local o=n();local l=n();local c=1;local o=(e(l,1,20)*(2^32))+o;local n=e(l,21,31);local l=((-1)^e(l,32));if(n==0)then if(o==0)then return l*0;else n=1;c=0;end;elseif(n==2047)then return(o==0)and(l*(1/0))or(l*(0/0));end;return h(l,n-1023)*(c+(o/(2^52)));end;local h=n;local function B(e)local n;if(not e)then e=h();if(e==0)then return'';end;end;n=c(i,l,l+e-1);l=l+e;local e={}for l=1,#n do e[l]=f(o(a(c(n,l,l)),154))end return u(e);end;local l=n;local function u(...)return{...},s('#',...)end;local function i()local f={};local c={};local l={};local a={f,c,nil,l};local l=n()local o={}for e=1,l do local n=d();local l;if(n==3)then l=(d()~=0);elseif(n==1)then l=G();elseif(n==2)then l=B();end;o[e]=l;end;a[2]=o;for l=1,n()do c[l-1]=i();end;for a=1,n()do local c=o(n(),5);local n=o(n(),52);local o=e(c,1,2);local l=e(n,1,11);local l={l,e(c,3,11),nil,nil,n};if(o==0)then l[3]=e(c,12,20);l[5]=e(c,21,29);elseif(o==1)then l[3]=e(n,12,33);elseif(o==2)then l[3]=e(n,12,32)-1048575;elseif(o==3)then l[3]=e(n,12,32)-1048575;l[5]=e(c,21,29);end;f[a]=l;end end;return a;end;local function f(l,e,h)local e=l[1];local n=l[2];local o=l[3];local l=l[4];return function(...)local c=e;local a=n;local G=o;local n=l;local l=u local e=1;local d=-1;local t={};local i={...};local u=s('#',...)-1;local l={};local o={};for l=0,u do if(l>=n)then t[l-n]=i[l+1];else o[l]=i[l+1];end;end;local l=u-n+1 local l;local n;while true do l=c[e];n=l[1];if n<=8 then if n<=3 then if n<=1 then if n>0 then o[l[2]]=h[a[l[3]]];else local n=l[2];local c={};local e=0;local a=n+l[3]-1;for l=n+1,a do e=e+1;c[e]=o[l];end;local c={o[n](r(c,1,a-n))};local l=n+l[5]-2;e=0;for l=n,l do e=e+1;o[l]=c[e];end;d=l;end;elseif n>2 then o[l[2]]=o[l[3]][a[l[5]]];else o[l[2]]=a[l[3]];end;elseif n<=5 then if n>4 then local n=l[2];local a={};local e=0;local c=d;for l=n+1,c do e=e+1;a[e]=o[l];end;local c={o[n](r(a,1,c-n))};local l=n+l[5]-2;e=0;for l=n,l do e=e+1;o[l]=c[e];end;d=l;else do return end;end;elseif n<=6 then o[l[2]][a[l[3]]]=o[l[5]];elseif n>7 then e=e+l[3];else local n=l[2];local c=l[5];local l=n+2;local a={o[n](o[n+1],o[l])};for e=1,c do o[l+e]=a[e];end;local n=o[n+3];if n then o[l]=n else e=e+1;end;end;elseif n<=13 then if n<=10 then if n>9 then local n=l[2];local a=l[5];local l=n+2;local c={o[n](o[n+1],o[l])};for e=1,a do o[l+e]=c[e];end;local n=o[n+3];if n then o[l]=n else e=e+1;end;else o[l[2]]=o[l[3]];end;elseif n<=11 then local n;local u,n;local i;local s;local t;local B;local n;o[l[2]]=h[a[l[3]]];e=e+1;l=c[e];o[l[2]]=h[a[l[3]]];e=e+1;l=c[e];n=l[2];B=o[l[3]];o[n+1]=B;o[n]=B[a[l[5]]];e=e+1;l=c[e];o[l[2]]=a[l[3]];e=e+1;l=c[e];n=l[2];t={};s=0;i=n+l[3]-1;for l=n+1,i do s=s+1;t[s]=o[l];end;u,i=l(o[n](r(t,1,i-n)));i=i+n-1;s=0;for l=n,i do s=s+1;o[l]=u[s];end;d=i;e=e+1;l=c[e];n=l[2];t={};s=0;i=d;for l=n+1,i do s=s+1;t[s]=o[l];end;u={o[n](r(t,1,i-n))};i=n+l[5]-2;s=0;for l=n,i do s=s
+--[[
+ARI HUB v2.0 Obfuscated
+Features:
+- Speed, Inf Jump, ESP, Anti-Clip, Anti-AFK
+- Settings persist across sessions
+]]
+
+local _G = getgenv()
+local Players = game:GetService("Players")
+local Http = game:GetService("HttpService")
+local Run = game:GetService("RunService")
+local WS = game:GetService("Workspace")
+local VIM = game:GetService("VirtualInputManager")
+local plr = Players.LocalPlayer
+
+-- Config handling
+local configFile = "ARI_CONFIG.json"
+local function getConfig()
+    if isfile(configFile) then
+        return Http:JSONDecode(readfile(configFile))
+    end
+    return {
+        speed = 16,
+        jump = 50,
+        esp = false,
+        noClip = false,
+        antiAFK = true
+    }
+end
+
+local function saveConfig(cfg)
+    writefile(configFile, Http:JSONEncode(cfg))
+end
+
+local cfg = getConfig()
+
+-- Module variables
+local speedActive = false
+local jumpActive = false
+local espActive = cfg.esp
+local clipActive = cfg.noClip
+local afkActive = cfg.antiAFK
+local UIS = game:GetService("UserInputService")
+local espElements = {}
+local lastPos = Vector3.new(0, 0, 0)
+local lastMove = os.time()
+
+-- Jump handler
+UIS.JumpRequest:Connect(function()
+    if jumpActive then
+        local char = plr.Character
+        if char and char:FindFirstChildOfClass("Humanoid") then
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            hum.UseJumpPower = true
+            hum.JumpPower = tonumber(cfg.jump) or 50
+            hum:ChangeState("Jumping")
+        end
+    end
+end)
+
+-- Anti-AFK system
+local function preventAFK()
+    if not afkActive then return end
+    
+    if os.time() - lastMove > 20 then
+        VIM:SendKeyEvent(true, Enum.KeyCode.W, false, nil)
+        task.wait(0.1)
+        VIM:SendKeyEvent(false, Enum.KeyCode.W, false, nil)
+        lastMove = os.time()
+    end
+end
+
+-- Movement tracking
+UIS.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Keyboard then
+        lastMove = os.time()
+    end
+end)
+
+-- Anti-clip system
+local function setupClipProtection(char)
+    if not char then return end
+    
+    local root = char:WaitForChild("HumanoidRootPart")
+    local lastValid = root.Position
+    
+    Run.Stepped:Connect(function()
+        if not clipActive or not char or not root then return end
+        
+        local current = root.Position
+        if (current - lastValid).Magnitude > 10 then
+            root.CFrame = CFrame.new(lastValid)
+        else
+            lastValid = current
+        end
+    end)
+end
+
+-- ESP system
+local function createESP(target)
+    if not espActive or target == plr then return end
+    
+    local char = target.Character or target.CharacterAdded:Wait()
+    local root = char:WaitForChild("HumanoidRootPart")
+    
+    -- Create ESP elements
+    local gui = Instance.new("BillboardGui")
+    gui.Name = target.Name .. "_ESP"
+    gui.AlwaysOnTop = true
+    gui.Size = UDim2.new(0, 200, 0, 50)
+    gui.StudsOffset = Vector3.new(0, 2, 0)
+    gui.Adornee = root
+    gui.Parent = char
+    
+    local nameTag = Instance.new("TextLabel")
+    nameTag.Size = UDim2.new(1, 0, 0.5, 0)
+    nameTag.BackgroundTransparency = 1
+    nameTag.Text = target.Name
+    nameTag.TextColor3 = Color3.new(1, 1, 1)
+    nameTag.TextScaled = true
+    nameTag.Font = Enum.Font.GothamBold
+    nameTag.Parent = gui
+    
+    local distTag = Instance.new("TextLabel")
+    distTag.Size = UDim2.new(1, 0, 0.5, 0)
+    distTag.Position = UDim2.new(0, 0, 0.5, 0)
+    distTag.BackgroundTransparency = 1
+    distTag.TextColor3 = Color3.new(1, 1, 1)
+    distTag.TextScaled = true
+    distTag.Font = Enum.Font.Gotham
+    distTag.Parent = gui
+    
+    espElements[target] = {gui = gui, name = nameTag, dist = distTag}
+    
+    -- Update distance
+    Run.Heartbeat:Connect(function()
+        if not espActive or not char or not root or not plr.Character then return end
+        
+        local localRoot = plr.Character:FindFirstChild("HumanoidRootPart")
+        if localRoot then
+            local distance = (root.Position - localRoot.Position).Magnitude
+            distTag.Text = string.format("%.1f studs", distance)
+        end
+    end)
+end
+
+local function clearESP()
+    for _, data in pairs(espElements) do
+        if data.gui then data.gui:Destroy() end
+    end
+    espElements = {}
+end
+
+local function toggleESP(state)
+    espActive = state
+    cfg.esp = state
+    saveConfig(cfg)
+    
+    if state then
+        clearESP()
+        for _, p in ipairs(Players:GetPlayers()) do
+            if p ~= plr then createESP(p) end
+        end
+        Players.PlayerAdded:Connect(createESP)
+    else
+        clearESP()
+    end
+end
+
+-- Initialize ESP
+if espActive then toggleESP(true) end
+
+-- Create interface
+local ui = Instance.new("ScreenGui")
+ui.ResetOnSpawn = false
+ui.IgnoreGuiInset = true
+ui.Parent = plr:WaitForChild("PlayerGui")
+
+local main = Instance.new("Frame")
+main.Size = UDim2.new(0, 250, 0, 340)
+main.Position = UDim2.new(0.5, -125, 0.5, -170)
+main.BackgroundColor3 = Color3.fromRGB(80, 0, 120)
+main.BorderSizePixel = 0
+main.Active = true
+main.Draggable = true
+main.Parent = ui
+Instance.new("UICorner", main).CornerRadius = UDim.new(0, 10)
+
+-- Title bar
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -60, 0, 30)
+title.BackgroundTransparency = 1
+title.Text = "ARI HUB v2.0"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextScaled = true
+title.Font = Enum.Font.GothamBold
+title.Parent = main
+
+-- Control buttons
+local minBtn = Instance.new("TextButton")
+minBtn.Size = UDim2.new(0, 30, 0, 30)
+minBtn.Position = UDim2.new(1, -60, 0, 0)
+minBtn.Text = "-"
+minBtn.TextScaled = true
+minBtn.Font = Enum.Font.GothamBold
+minBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 200)
+minBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+minBtn.Parent = main
+Instance.new("UICorner", minBtn).CornerRadius = UDim.new(0, 8)
+minBtn.ZIndex = 2
+
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 30, 0, 30)
+closeBtn.Position = UDim2.new(1, -30, 0, 0)
+closeBtn.Text = "X"
+closeBtn.TextScaled = true
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.Parent = main
+Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 8)
+closeBtn.ZIndex = 2
+
+-- Feature controls
+local speedBtn = Instance.new("TextButton")
+speedBtn.Size = UDim2.new(1, -20, 0, 40)
+speedBtn.Position = UDim2.new(0, 10, 0, 40)
+speedBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 180)
+speedBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+speedBtn.Text = "Speed: OFF"
+speedBtn.TextScaled = true
+speedBtn.Font = Enum.Font.GothamBold
+speedBtn.Parent = main
+Instance.new("UICorner", speedBtn).CornerRadius = UDim.new(0, 8)
+
+local speedBox = Instance.new("TextBox")
+speedBox.Size = UDim2.new(1, -20, 0, 30)
+speedBox.Position = UDim2.new(0, 10, 0, 85)
+speedBox.BackgroundColor3 = Color3.fromRGB(100, 0, 150)
+speedBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+speedBox.Text = tostring(cfg.speed)
+speedBox.TextScaled = true
+speedBox.Font = Enum.Font.GothamBold
+speedBox.Parent = main
+Instance.new("UICorner", speedBox).CornerRadius = UDim.new(0, 8)
+
+local jumpBtn = Instance.new("TextButton")
+jumpBtn.Size = UDim2.new(1, -20, 0, 40)
+jumpBtn.Position = UDim2.new(0, 10, 0, 125)
+jumpBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 180)
+jumpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+jumpBtn.Text = "Inf Jump: OFF"
+jumpBtn.TextScaled = true
+jumpBtn.Font = Enum.Font.GothamBold
+jumpBtn.Parent = main
+Instance.new("UICorner", jumpBtn).CornerRadius = UDim.new(0, 8)
+
+local jumpBox = Instance.new("TextBox")
+jumpBox.Size = UDim2.new(1, -20, 0, 30)
+jumpBox.Position = UDim2.new(0, 10, 0, 170)
+jumpBox.BackgroundColor3 = Color3.fromRGB(100, 0, 150)
+jumpBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+jumpBox.Text = tostring(cfg.jump)
+jumpBox.TextScaled = true
+jumpBox.Font = Enum.Font.GothamBold
+jumpBox.Parent = main
+Instance.new("UICorner", jumpBox).CornerRadius = UDim.new(0, 8)
+
+local espBtn = Instance.new("TextButton")
+espBtn.Size = UDim2.new(1, -20, 0, 40)
+espBtn.Position = UDim2.new(0, 10, 0, 210)
+espBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 180)
+espBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+espBtn.Text = "ESP: " .. (espActive and "ON" or "OFF")
+espBtn.TextScaled = true
+espBtn.Font = Enum.Font.GothamBold
+espBtn.Parent = main
+Instance.new("UICorner", espBtn).CornerRadius = UDim.new(0, 8)
+
+local clipBtn = Instance.new("TextButton")
+clipBtn.Size = UDim2.new(1, -20, 0, 40)
+clipBtn.Position = UDim2.new(0, 10, 0, 255)
+clipBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 180)
+clipBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+clipBtn.Text = "Anti-Clip: " .. (clipActive and "ON" or "OFF")
+clipBtn.TextScaled = true
+clipBtn.Font = Enum.Font.GothamBold
+clipBtn.Parent = main
+Instance.new("UICorner", clipBtn).CornerRadius = UDim.new(0, 8)
+
+local afkBtn = Instance.new("TextButton")
+afkBtn.Size = UDim2.new(1, -20, 0, 40)
+afkBtn.Position = UDim2.new(0, 10, 0, 300)
+afkBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 180)
+afkBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+afkBtn.Text = "Anti-AFK: " .. (afkActive and "ON" or "OFF")
+afkBtn.TextScaled = true
+afkBtn.Font = Enum.Font.GothamBold
+afkBtn.Parent = main
+Instance.new("UICorner", afkBtn).CornerRadius = UDim.new(0, 8)
+
+-- Control logic
+speedBtn.MouseButton1Click:Connect(function()
+    local char = plr.Character or plr.CharacterAdded:Wait()
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if not hum then return end
+
+    speedActive = not speedActive
+    if speedActive then
+        hum.WalkSpeed = tonumber(cfg.speed) or 16
+        speedBtn.Text = "Speed: ON"
+    else
+        hum.WalkSpeed = 16
+        speedBtn.Text = "Speed: OFF"
+    end
+end)
+
+speedBox.FocusLost:Connect(function()
+    local val = tonumber(speedBox.Text)
+    if val and val >= 16 and val <= 100000 then
+        cfg.speed = val
+        saveConfig(cfg)
+        if speedActive then
+            local char = plr.Character or plr.CharacterAdded:Wait()
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            if hum then hum.WalkSpeed = val end
+        end
+    else
+        speedBox.Text = tostring(cfg.speed)
+    end
+end)
+
+jumpBtn.MouseButton1Click:Connect(function()
+    jumpActive = not jumpActive
+    jumpBtn.Text = jumpActive and "Inf Jump: ON" or "Inf Jump: OFF"
+end)
+
+jumpBox.FocusLost:Connect(function()
+    local val = tonumber(jumpBox.Text)
+    if val and val >= 50 and val <= 1000 then
+        cfg.jump = val
+        saveConfig(cfg)
+    else
+        jumpBox.Text = tostring(cfg.jump)
+    end
+end)
+
+espBtn.MouseButton1Click:Connect(function()
+    espActive = not espActive
+    espBtn.Text = "ESP: " .. (espActive and "ON" or "OFF")
+    toggleESP(espActive)
+end)
+
+clipBtn.MouseButton1Click:Connect(function()
+    clipActive = not clipActive
+    cfg.noClip = clipActive
+    saveConfig(cfg)
+    clipBtn.Text = "Anti-Clip: " .. (clipActive and "ON" or "OFF")
+    
+    if clipActive and plr.Character then
+        setupClipProtection(plr.Character)
+    end
+end)
+
+afkBtn.MouseButton1Click:Connect(function()
+    afkActive = not afkActive
+    cfg.antiAFK = afkActive
+    saveConfig(cfg)
+    afkBtn.Text = "Anti-AFK: " .. (afkActive and "ON" or "OFF")
+end)
+
+-- UI controls
+local minimized = false
+local uiElements = {speedBtn, speedBox, jumpBtn, jumpBox, espBtn, clipBtn, afkBtn}
+
+minBtn.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    for _, el in ipairs(uiElements) do
+        el.Visible = not minimized
+    end
+    main.Size = minimized and UDim2.new(0, 250, 0, 30) or UDim2.new(0, 250, 0, 340)
+    minBtn.Text = minimized and "+" or "-"
+end)
+
+closeBtn.MouseButton1Click:Connect(function()
+    ui:Destroy()
+end)
+
+-- Respawn handler
+plr.CharacterAdded:Connect(function(char)
+    local hum = char:WaitForChild("Humanoid")
+    if speedActive then
+        hum.WalkSpeed = tonumber(cfg.speed) or 16
+    else
+        hum.WalkSpeed = 16
+    end
+    
+    if clipActive then
+        setupClipProtection(char)
+    end
+end)
+
+-- AFK prevention loop
+while true do
+    preventAFK()
+    task.wait(1)
+end
