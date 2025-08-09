@@ -1,4 +1,5 @@
--- ARI HUB Script Fix lengkap - Delta Executor Android
+-- ARI HUB Full Fix untuk Delta Executor Android
+
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -8,6 +9,7 @@ local playerGui = player:WaitForChild("PlayerGui")
 
 local fileName = "ARI HUB.json"
 
+-- Config default
 local config = {
     SpeedEnabled = false,
     SpeedValue = 0,
@@ -17,84 +19,88 @@ local config = {
     BlockEnabled = false,
 }
 
--- Save & Load Config
-local function saveConfig()
-    local json = HttpService:JSONEncode(config)
-    if writefile then
-        pcall(function() writefile(fileName, json) end)
-    end
-end
-
+-- Load config
 local function loadConfig()
     if isfile and isfile(fileName) then
-        local success, content = pcall(function() return readfile(fileName) end)
-        if success and content then
-            local data = HttpService:JSONDecode(content)
-            if type(data) == "table" then
+        local suc, content = pcall(readfile, fileName)
+        if suc and content then
+            local success, data = pcall(function() return HttpService:JSONDecode(content) end)
+            if success and type(data) == "table" then
                 config = data
             end
         end
     end
 end
 
+-- Save config
+local function saveConfig()
+    if writefile then
+        local suc, err = pcall(function()
+            writefile(fileName, HttpService:JSONEncode(config))
+        end)
+        if not suc then
+            warn("Failed to save config: "..tostring(err))
+        end
+    end
+end
+
 loadConfig()
 
--- Bersihkan GUI lama kalau ada
+-- Hapus GUI lama
 local oldGui = playerGui:FindFirstChild("ARIHUB")
 if oldGui then oldGui:Destroy() end
 
+-- Buat GUI utama
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "ARIHUB"
 ScreenGui.Parent = playerGui
 ScreenGui.ResetOnSpawn = false
 
--- Frame Utama (50% dari sebelumnya)
 local MainFrame = Instance.new("Frame")
-MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 175, 0, 220) -- 50% ukuran awal (350x440)
+MainFrame.Size = UDim2.new(0, 175, 0, 220) -- ukuran sudah 50% dari semula
 MainFrame.Position = UDim2.new(0.5, -87, 0.5, -110)
 MainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
 MainFrame.BorderSizePixel = 0
 MainFrame.Parent = ScreenGui
-local UICorner = Instance.new("UICorner", MainFrame)
-UICorner.CornerRadius = UDim.new(0, 14)
 
--- Efek gradient glossy sederhana
-local UIGradient = Instance.new("UIGradient", MainFrame)
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 14)
+UICorner.Parent = MainFrame
+
+-- UIGradient untuk efek glossy sederhana
+local UIGradient = Instance.new("UIGradient")
 UIGradient.Rotation = 45
 UIGradient.Color = ColorSequence.new{
     ColorSequenceKeypoint.new(0, Color3.fromRGB(50,50,60)),
     ColorSequenceKeypoint.new(0.5, Color3.fromRGB(30,30,40)),
     ColorSequenceKeypoint.new(1, Color3.fromRGB(50,50,60)),
 }
+UIGradient.Parent = MainFrame
 
 -- Title Bar
 local TitleBar = Instance.new("Frame")
-TitleBar.Name = "TitleBar"
 TitleBar.Size = UDim2.new(1, 0, 0, 22)
 TitleBar.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 TitleBar.Parent = MainFrame
-local TitleCorner = Instance.new("UICorner", TitleBar)
-TitleCorner.CornerRadius = UDim.new(0, 14)
 
--- Judul dengan glow efek sederhana via TextStroke
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 14)
+TitleCorner.Parent = TitleBar
+
 local TitleLabel = Instance.new("TextLabel")
-TitleLabel.Name = "TitleLabel"
 TitleLabel.Text = "ARI HUB"
 TitleLabel.Font = Enum.Font.GothamBold
 TitleLabel.TextSize = 16
 TitleLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
-TitleLabel.BackgroundTransparency = 1
-TitleLabel.Size = UDim2.new(1, -50, 1, 0)
-TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-TitleLabel.Position = UDim2.new(0, 10, 0, 0)
-TitleLabel.Parent = TitleBar
 TitleLabel.TextStrokeTransparency = 0.6
 TitleLabel.TextStrokeColor3 = Color3.fromRGB(255, 50, 50)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Size = UDim2.new(1, -50, 1, 0)
+TitleLabel.Position = UDim2.new(0, 10, 0, 0)
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+TitleLabel.Parent = TitleBar
 
--- Minimize / Maximize button
 local MinBtn = Instance.new("TextButton")
-MinBtn.Name = "MinBtn"
 MinBtn.Size = UDim2.new(0, 40, 1, 0)
 MinBtn.Position = UDim2.new(1, -40, 0, 0)
 MinBtn.Text = "-"
@@ -104,12 +110,13 @@ MinBtn.TextColor3 = Color3.fromRGB(255,255,255)
 MinBtn.BackgroundColor3 = Color3.fromRGB(60, 0, 0)
 MinBtn.BorderSizePixel = 0
 MinBtn.Parent = TitleBar
-local MinBtnCorner = Instance.new("UICorner", MinBtn)
-MinBtnCorner.CornerRadius = UDim.new(0, 10)
 
--- Frame konten dengan scrolling jika perlu
+local MinBtnCorner = Instance.new("UICorner")
+MinBtnCorner.CornerRadius = UDim.new(0, 10)
+MinBtnCorner.Parent = MinBtn
+
+-- Content Frame (scrolling)
 local ContentFrame = Instance.new("ScrollingFrame")
-ContentFrame.Name = "ContentFrame"
 ContentFrame.Size = UDim2.new(1, 0, 1, -22)
 ContentFrame.Position = UDim2.new(0, 0, 0, 22)
 ContentFrame.BackgroundTransparency = 1
@@ -117,18 +124,20 @@ ContentFrame.Parent = MainFrame
 ContentFrame.ScrollBarThickness = 6
 ContentFrame.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
 
-local UIListLayout = Instance.new("UIListLayout", ContentFrame)
+local UIListLayout = Instance.new("UIListLayout")
 UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 UIListLayout.Padding = UDim.new(0, 8)
+UIListLayout.Parent = ContentFrame
 
--- Fungsi membuat toggle rapi
+-- Fungsi buat toggle rapi
 local function createToggle(text, parent, default)
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(1, -20, 0, 30)
     frame.BackgroundColor3 = Color3.fromRGB(45,45,55)
     frame.Parent = parent
-    local corner = Instance.new("UICorner", frame)
+    local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = frame
 
     local label = Instance.new("TextLabel")
     label.Text = text
@@ -150,20 +159,23 @@ local function createToggle(text, parent, default)
     toggleBtn.TextSize = 14
     toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     toggleBtn.Parent = frame
-    local toggleCorner = Instance.new("UICorner", toggleBtn)
+
+    local toggleCorner = Instance.new("UICorner")
     toggleCorner.CornerRadius = UDim.new(0, 8)
+    toggleCorner.Parent = toggleBtn
 
     return frame, toggleBtn
 end
 
--- Fungsi membuat label + textbox
+-- Fungsi buat label + textbox
 local function createTextbox(text, parent, defaultText)
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(1, -20, 0, 30)
     frame.BackgroundColor3 = Color3.fromRGB(45,45,55)
     frame.Parent = parent
-    local corner = Instance.new("UICorner", frame)
+    local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, 8)
+    corner.Parent = frame
 
     local label = Instance.new("TextLabel")
     label.Text = text
@@ -186,21 +198,23 @@ local function createTextbox(text, parent, defaultText)
     textbox.Text = tostring(defaultText)
     textbox.ClearTextOnFocus = false
     textbox.Parent = frame
-    local textboxCorner = Instance.new("UICorner", textbox)
+
+    local textboxCorner = Instance.new("UICorner")
     textboxCorner.CornerRadius = UDim.new(0, 8)
+    textboxCorner.Parent = textbox
 
     return frame, textbox
 end
 
--- Buat UI elemen
+-- Buat UI elemen toggle dan textbox
 local speedFrame, speedToggle = createToggle("Speed", ContentFrame, config.SpeedEnabled)
 local _, speedTextbox = createTextbox("Speed Value", ContentFrame, config.SpeedValue)
 local infJumpFrame, infJumpToggle = createToggle("Infinite Jump", ContentFrame, config.InfiniteJump)
-local clipFrame, clipToggle = createToggle("Clip (Tembus Tembok)", ContentFrame, config.Clip)
+local clipFrame, clipToggle = createToggle("Clip (Tembus Wall)", ContentFrame, config.Clip)
 local espFrame, espToggle = createToggle("ESP Username + Jarak", ContentFrame, config.ESPEnabled)
-local blockFrame, blockToggle = createToggle("Block Mini Transparan", ContentFrame, config.BlockEnabled)
+local blockFrame, blockToggle = createToggle("Blok Mini Transparan", ContentFrame, config.BlockEnabled)
 
--- Minimize toggle logic
+-- Minimize / Maximize button logic
 local minimized = false
 MinBtn.MouseButton1Click:Connect(function()
     if minimized then
@@ -216,7 +230,7 @@ MinBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Dragging GUI (Touch & Mouse)
+-- Drag GUI
 local dragging = false
 local dragInput, mousePos, framePos
 
@@ -242,19 +256,18 @@ end)
 UserInputService.InputChanged:Connect(function(input)
     if input == dragInput and dragging then
         local delta = input.Position - mousePos
-        local newPos = UDim2.new(framePos.X.Scale, framePos.X.Offset + delta.X, framePos.Y.Scale, framePos.Y.Offset + delta.Y)
-        MainFrame.Position = newPos
+        MainFrame.Position = UDim2.new(framePos.X.Scale, framePos.X.Offset + delta.X, framePos.Y.Scale, framePos.Y.Offset + delta.Y)
     end
 end)
 
--- Fitur speed
-local function applySpeed(enabled, speedValue)
+-- Speed apply function
+local function applySpeed(enabled, speedVal)
     local char = player.Character
     if not char then return end
     local humanoid = char:FindFirstChildOfClass("Humanoid")
     if humanoid then
         if enabled then
-            humanoid.WalkSpeed = speedValue
+            humanoid.WalkSpeed = speedVal
         else
             humanoid.WalkSpeed = 16
         end
@@ -275,10 +288,8 @@ UserInputService.JumpRequest:Connect(function()
     end
 end)
 
--- Clip tembus wall
+-- Clip function: disable CanCollide except HumanoidRootPart
 local clipEnabled = config.Clip
-
--- Metode clip: kita akan set CanCollide = false untuk semua part bertipe "BasePart" dalam character agar bisa tembus
 local function updateClip(enabled)
     local char = player.Character
     if not char then return end
@@ -287,12 +298,11 @@ local function updateClip(enabled)
             part.CanCollide = not enabled
         end
     end
-    -- HumanoidRootPart tetap collidable supaya stabil
     local hrp = char:FindFirstChild("HumanoidRootPart")
     if hrp then hrp.CanCollide = true end
 end
 
--- ESP Username + jarak
+-- ESP
 local espEnabled = config.ESPEnabled
 local espTags = {}
 
@@ -354,7 +364,7 @@ Players.PlayerRemoving:Connect(function(plr)
     end
 end)
 
--- Block mini transparan di bawah karakter
+-- Block mini transparan
 local blockPart
 local blockEnabled = config.BlockEnabled
 
@@ -379,7 +389,7 @@ local function updateBlock(enabled)
 
     if enabled then
         createBlock()
-        -- Posisi tetap di bawah HumanoidRootPart, 3.2 studs di bawah
+        -- Pasang posisi tepat di bawah HumanoidRootPart (offset -3.2)
         blockPart.Position = Vector3.new(root.Position.X, root.Position.Y - 3.2, root.Position.Z)
     else
         if blockPart then
@@ -391,22 +401,20 @@ end
 
 -- Anti AFK kuat
 local VirtualUser = game:GetService("VirtualUser")
-Players.LocalPlayer.Idled:Connect(function()
+player.Idled:Connect(function()
     VirtualUser:CaptureController()
     VirtualUser:ClickButton2(Vector2.new())
 end)
 
--- Update loop
+-- Update setiap frame
 RunService.Heartbeat:Connect(function()
     if config.SpeedEnabled then
         applySpeed(true, tonumber(config.SpeedValue) or 0)
     else
         applySpeed(false)
     end
-
     updateClip(config.Clip)
     updateBlock(config.BlockEnabled)
-
     if config.ESPEnabled then
         updateEsp()
     else
@@ -418,8 +426,7 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
--- Event UI listeners
-
+-- Listener toggle
 speedToggle.MouseButton1Click:Connect(function()
     config.SpeedEnabled = not config.SpeedEnabled
     speedToggle.Text = config.SpeedEnabled and "ON" or "OFF"
@@ -441,5 +448,32 @@ end)
 
 infJumpToggle.MouseButton1Click:Connect(function()
     config.InfiniteJump = not config.InfiniteJump
+    infJumpEnabled = config.InfiniteJump
+    infJumpToggle.Text = config.InfiniteJump and "ON" or "OFF"
+    infJumpToggle.BackgroundColor3 = config.InfiniteJump and Color3.fromRGB(0, 200, 80) or Color3.fromRGB(150,150,150)
+    saveConfig()
+end)
 
-        
+clipToggle.MouseButton1Click:Connect(function()
+    config.Clip = not config.Clip
+    clipEnabled = config.Clip
+    clipToggle.Text = config.Clip and "ON" or "OFF"
+    clipToggle.BackgroundColor3 = config.Clip and Color3.fromRGB(0, 200, 80) or Color3.fromRGB(150,150,150)
+    saveConfig()
+end)
+
+espToggle.MouseButton1Click:Connect(function()
+    config.ESPEnabled = not config.ESPEnabled
+    espEnabled = config.ESPEnabled
+    espToggle.Text = config.ESPEnabled and "ON" or "OFF"
+    espToggle.BackgroundColor3 = config.ESPEnabled and Color3.fromRGB(0, 200, 80) or Color3.fromRGB(150,150,150)
+    saveConfig()
+end)
+
+blockToggle.MouseButton1Click:Connect(function()
+    config.BlockEnabled = not config.BlockEnabled
+    blockEnabled = config.BlockEnabled
+    blockToggle.Text = config.BlockEnabled and "ON" or "OFF"
+    blockToggle.BackgroundColor3 = config.BlockEnabled and Color3.fromRGB(0, 200, 80) or Color3.fromRGB(150,150,150)
+    saveConfig()
+end)
